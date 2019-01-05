@@ -1,9 +1,10 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2016 Klaralvdalens Datakonsult AB (KDAB).
+** Copyright (C) 2016 The Qt Company Ltd and/or its subsidiary(-ies).
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the QtCore module of the Qt Toolkit.
+** This file is part of the Qt3D module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:BSD$
 ** Commercial License Usage
@@ -48,81 +49,50 @@
 **
 ****************************************************************************/
 
-#ifndef MAINWIDGET_H
-#define MAINWIDGET_H
 
-#include "geometryengine.h"
+#ifndef ORBITTRANSFORMCONTROLLER_H
+#define ORBITTRANSFORMCONTROLLER_H
 
-#include <QOpenGLWidget>
-#include <QOpenGLFunctions>
+#include <QObject>
 #include <QMatrix4x4>
-#include <QQuaternion>
-#include <QVector2D>
-#include <QBasicTimer>
-#include <QOpenGLShaderProgram>
-#include <QOpenGLTexture>
-#include <QMouseEvent>
-#include <math.h>
-#include <sstream>
-#include <iostream>
-/*#include <thread>
-#include <mutex>
-#include <condition_variable>*/
-#include <QSet>
 
-using namespace std;
+namespace Qt3DCore {
+class QTransform;
+}
 
-class GeometryEngine;
-
-class MainWidget : public QOpenGLWidget, protected QOpenGLFunctions
+class OrbitTransformController : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(Qt3DCore::QTransform* target READ target WRITE setTarget NOTIFY targetChanged)
+    Q_PROPERTY(float radius READ radius WRITE setRadius NOTIFY radiusChanged)
+    Q_PROPERTY(float angle READ angle WRITE setAngle NOTIFY angleChanged)
 
 public:
-    explicit MainWidget(int fps=60,std::string img_texture = "NB",QWidget *parent = 0);
-    ~MainWidget();
-    int fps;
-    QQuaternion rotation;
-    QQuaternion init_rotation;
-    qreal target_angle = 0;
-    qreal angle = 0;
+    OrbitTransformController(QObject *parent = 0);
+
+    void setTarget(Qt3DCore::QTransform *target);
+    Qt3DCore::QTransform *target() const;
+
+    void setRadius(float radius);
+    float radius() const;
+
+    void setAngle(float angle);
+    float angle() const;
+
+signals:
+    void targetChanged();
+    void radiusChanged();
+    void angleChanged();
 
 protected:
-    void mousePressEvent(QMouseEvent *e) override;
-    //void mouseReleaseEvent(QMouseEvent *e) override;
-    void MainWidget::keyPressEvent(QKeyEvent *e) override;
-    void MainWidget::keyReleaseEvent(QKeyEvent *e) override;
-    void MainWidget::wheelEvent(QWheelEvent *event) override;
-    void timerEvent(QTimerEvent *e) override;
-    void rotation_handler();
-    void move_handler();
-
-    void initializeGL() override;
-    void resizeGL(int w, int h) override;
-    void paintGL() override;
-
-    void initShaders();
-    void initTextures();
+    void updateMatrix();
 
 private:
-    std::string img_texture;
-
-    QBasicTimer timer;
-    QOpenGLShaderProgram program;
-    GeometryEngine *geometries;
-
-    QOpenGLTexture *texture;
-
-    QMatrix4x4 projection;
-    QMatrix4x4 modelView;
-
-    QVector2D mousePressPosition;
-    QVector3D rotationAxis;
-    qreal angularSpeed = 0;
-    qreal angularSpeedDefaultValue = 3;
-
-    Qt3D::ObjLoader objloader;
-
+    Qt3DCore::QTransform *m_target;
+    QMatrix4x4 m_matrix;
+    float m_radius;
+    float m_angle;
 };
 
-#endif // MAINWIDGET_H
+
+#endif // ORBITTRANSFORMCONTROLLER_H

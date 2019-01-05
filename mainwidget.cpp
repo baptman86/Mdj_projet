@@ -75,7 +75,7 @@ MainWidget::~MainWidget()
 //! [0]
 //!
 
-mutex mtx;
+/*mutex mtx;
 condition_variable cv;
 bool ready = true;
 int current = 0;
@@ -93,31 +93,21 @@ void rotate(MainWidget* mw,int num, float angle,int milliSecondTime)
     std::this_thread::sleep_for(std::chrono::milliseconds(milliSecondTime));
     //mw->angularSpeed=0;
     cv.notify_all();
-}
+}*/
 
 
+QSet<Qt::Key> key_pressed;
 
 void MainWidget::keyPressEvent(QKeyEvent *e){
 
-    if(e->key()==Qt::Key_Z){
-        projection.translate(QVector3D(0,0.1f,0));
-    }
-    if(e->key()==Qt::Key_S){
-        projection.translate(QVector3D(0,-0.1f,0));
-    }
-    if(e->key()==Qt::Key_D){
-        projection.translate(QVector3D(0.1f,0,0));
-    }
-    if(e->key()==Qt::Key_Q){
-        projection.translate(QVector3D(-0.1f,0,0));
-    }
+    key_pressed << (Qt::Key)e->key();
 
-    if(e->key()==Qt::Key_Up){
+    if(e->key()==Qt::Key_A){
         /*std::thread t1([this]() { rotate(this, current, 45.0f); });
         t1.detach();*/
         target_angle+=45.0;
     }
-    if(e->key()==Qt::Key_Down){
+    if(e->key()==Qt::Key_E){
         /*std::thread t1([this]() { rotate(this, current, -45.0f); });
         t1.detach();*/
         target_angle-=45.0;
@@ -125,48 +115,66 @@ void MainWidget::keyPressEvent(QKeyEvent *e){
     update();
 }
 
+void MainWidget::keyReleaseEvent(QKeyEvent *e){
+    key_pressed.remove((Qt::Key)e->key());
+}
+
 void MainWidget::wheelEvent(QWheelEvent *event){
     QPoint numDegrees = event->angleDelta()/8;
     if(!numDegrees.isNull()){
-        projection.translate(QVector3D(0,0,0.01f*numDegrees.y()));
+        projection.translate(QVector3D(0,0,0.003f*numDegrees.y()));
         update();
     }
 }
 
+void display(QMatrix4x4 mat){
+    for(int i=0;i<4;i++){
+        for(int j=0;j<4;j++){
+            cout << mat.data()[i*4+j] << " ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
+
 void MainWidget::mousePressEvent(QMouseEvent *e)
 {
+    /*rayCaster->setPosition(e->localPos().toPoint());
+    rayCaster->setObjectName("mouseRayCaster");
+    rayCaster->setRunMode(rayCaster->SingleShot);
+    rayCaster->dumpObjectInfo();*/
+
     // Save mouse press position
-    mousePressPosition = QVector2D(e->localPos());
-    QVector3D viewptr = QVector3D(mousePressPosition.x(),mousePressPosition.y(),0.0);
-    cout << viewptr.unproject(modelView,projection,geometry()).x() << endl;
+    /*mousePressPosition = QVector2D(e->localPos());
+    cout << mousePressPosition.x() << " : " << mousePressPosition.y() << endl;
+    float x = (2.0f * mousePressPosition.x()) / this->width() - 1.0f;
+    float y = 1.0f - (2.0f * mousePressPosition.y()) / this->height();
+    float z = 1.0f;
+    QVector3D ray_nds = QVector3D(x, y, z);
+    QVector4D ray_clip = QVector4D(ray_nds.x(),ray_nds.y(), -1.0, 1.0);
+    QVector4D ray_eye = projection.inverted() * ray_clip;
+    ray_eye = QVector4D(ray_eye.x(),ray_eye.y(), -1.0, 0.0);
+    QVector3D ray_wor = QVector3D((modelView.inverted() * ray_eye).x(),(modelView.inverted() * ray_eye).y(),(modelView.inverted() * ray_eye).z());
+    ray_wor.normalize();
+    cout << ray_eye.x() << " : " << ray_eye.y() << " : " << ray_eye.z() << endl;
+    cout << ray_wor.x() << " : " << ray_wor.y() << " : " << ray_wor.z() << endl;*/
+
+    //QVector3D viewptr = QVector3D(mousePressPosition.x(),mousePressPosition.y(),0.0);
+    //cout << viewptr.unproject(modelView,projection,geometry()).x() << viewptr.unproject(modelView,projection,geometry()).y() << viewptr.unproject(modelView,projection,geometry()).z() << endl;
+
+    /*mousePressPosition = QVector2D(e->localPos());
+    QVector3D viewptr = QVector3D(0.0,0.0,0.0);
+    QVector3D tmp = viewptr*projection;
+    cout << tmp.x() << " : " << tmp.y() << " : " << tmp.z() << endl;;*/
+
+    //display(projection);
+    cout << program.uniformLocation("mvp_matrix");
 
 }
 
-/*void MainWidget::mouseReleaseEvent(QMouseEvent *e)
-{
-    // Mouse release position - mouse press position
-    QVector2D diff = QVector2D(e->localPos()) - mousePressPosition;
-
-    // Rotation axis is perpendicular to the mouse position difference
-    // vector
-    QVector3D n = QVector3D(diff.y(), diff.x(), 0.0).normalized();
-
-    // Accelerate angular speed relative to the length of the mouse sweep
-    qreal acc = diff.length() / 100.0;
-
-    // Calculate new rotation axis as weighted sum
-    rotationAxis = (rotationAxis * angularSpeed + n * acc).normalized();
-
-    // Increase angular speed
-    angularSpeed += acc;
-}*/
-//! [0]
-
-//! [1]
-void MainWidget::timerEvent(QTimerEvent *e)
-{
+void MainWidget::rotation_handler(){
     // Decrease angular speed (friction)
-    QVector3D n = QVector3D(0.0, 1.0, 1.0).normalized();
+    QVector3D n = QVector3D(0.0, 1.0f, 1.0f).normalized();
     // Update rotation
     if(target_angle<angle){
         angularSpeed=angularSpeedDefaultValue;
@@ -182,10 +190,33 @@ void MainWidget::timerEvent(QTimerEvent *e)
         }
     }
     rotation = QQuaternion::fromAxisAndAngle(n, angularSpeed) * rotation;
+}
 
-    // Request an update
+void MainWidget::move_handler(){
+    float cameraSpeed = 0.04f;
+    float s = sqrt(2);
+
+    if(key_pressed.contains(Qt::Key_Z)){
+        projection.translate(QVector3D(0,-cameraSpeed/s,cameraSpeed/s));
+    }
+    if(key_pressed.contains(Qt::Key_S)){
+        projection.translate(QVector3D(0,cameraSpeed/s,-cameraSpeed/s));
+    }
+    if(key_pressed.contains(Qt::Key_D)){
+        projection.translate(QVector3D(-cameraSpeed,0,0));
+    }
+    if(key_pressed.contains(Qt::Key_Q)){
+        projection.translate(QVector3D(cameraSpeed,0,0));
+    }
+}
+
+void MainWidget::timerEvent(QTimerEvent *e)
+{
+    rotation_handler();
+    move_handler();
     update();
 }
+
 //! [1]
 
 void MainWidget::initializeGL()
@@ -237,7 +268,7 @@ void MainWidget::initShaders()
 void MainWidget::initTextures()
 {
     // Load cube.png image
-    texture = new QOpenGLTexture(QImage(":/ground.png"));
+    texture = new QOpenGLTexture(QImage(":/groundSquart.png"));
 
     // Set nearest filtering mode for texture minification
     texture->setMinificationFilter(QOpenGLTexture::Nearest);
@@ -258,7 +289,7 @@ void MainWidget::resizeGL(int w, int h)
     qreal aspect = qreal(w) / qreal(h ? h : 1);
 
     // Set near plane to 3.0, far plane to 7.0, field of view 45 degrees
-    const qreal zNear = 0.1, zFar = 20.0, fov = 45.0;
+    const qreal zNear = 0.001, zFar = 50.0, fov = 45.0;
 
     // Reset projection
     projection.setToIdentity();
@@ -269,8 +300,7 @@ void MainWidget::resizeGL(int w, int h)
 
     // Set perspective projection
     projection.perspective(fov, aspect, zNear, zFar);
-
-    QVector3D centerOfInterest(1, 0, 0), up(0, 1, 0);
+    QVector3D centerOfInterest(0, 0, 0), up(1, 0, 0);
     modelView.setToIdentity();
     modelView.lookAt(eye, centerOfInterest, up);
 }
@@ -286,7 +316,7 @@ void MainWidget::paintGL()
 //! [6]
     // Calculate model view transformation
     QMatrix4x4 matrix;
-    matrix.translate(0.0, 0.0, -5.0);
+    matrix.translate(0.0, 0.0, -1.0);
     matrix.rotate(rotation);
 
     // Set modelview-projection matrix

@@ -1,9 +1,10 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2016 Klaralvdalens Datakonsult AB (KDAB).
+** Copyright (C) 2016 The Qt Company Ltd and/or its subsidiary(-ies).
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the QtCore module of the Qt Toolkit.
+** This file is part of the Qt3D module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:BSD$
 ** Commercial License Usage
@@ -48,81 +49,64 @@
 **
 ****************************************************************************/
 
-#ifndef MAINWIDGET_H
-#define MAINWIDGET_H
 
-#include "geometryengine.h"
+#include "orbittransformcontroller.h"
 
-#include <QOpenGLWidget>
-#include <QOpenGLFunctions>
-#include <QMatrix4x4>
-#include <QQuaternion>
-#include <QVector2D>
-#include <QBasicTimer>
-#include <QOpenGLShaderProgram>
-#include <QOpenGLTexture>
-#include <QMouseEvent>
-#include <math.h>
-#include <sstream>
-#include <iostream>
-/*#include <thread>
-#include <mutex>
-#include <condition_variable>*/
-#include <QSet>
+#include <Qt3DCore/qtransform.h>
 
-using namespace std;
-
-class GeometryEngine;
-
-class MainWidget : public QOpenGLWidget, protected QOpenGLFunctions
+OrbitTransformController::OrbitTransformController(QObject *parent)
+    : QObject(parent)
+    , m_target(nullptr)
+    , m_matrix()
+    , m_radius(1.0f)
+    , m_angle(0.0f)
 {
-    Q_OBJECT
+}
 
-public:
-    explicit MainWidget(int fps=60,std::string img_texture = "NB",QWidget *parent = 0);
-    ~MainWidget();
-    int fps;
-    QQuaternion rotation;
-    QQuaternion init_rotation;
-    qreal target_angle = 0;
-    qreal angle = 0;
+void OrbitTransformController::setTarget(Qt3DCore::QTransform *target)
+{
+    if (m_target != target) {
+        m_target = target;
+        emit targetChanged();
+    }
+}
 
-protected:
-    void mousePressEvent(QMouseEvent *e) override;
-    //void mouseReleaseEvent(QMouseEvent *e) override;
-    void MainWidget::keyPressEvent(QKeyEvent *e) override;
-    void MainWidget::keyReleaseEvent(QKeyEvent *e) override;
-    void MainWidget::wheelEvent(QWheelEvent *event) override;
-    void timerEvent(QTimerEvent *e) override;
-    void rotation_handler();
-    void move_handler();
+Qt3DCore::QTransform *OrbitTransformController::target() const
+{    return m_target;
+}
 
-    void initializeGL() override;
-    void resizeGL(int w, int h) override;
-    void paintGL() override;
+void OrbitTransformController::setRadius(float radius)
+{
+    if (!qFuzzyCompare(radius, m_radius)) {
+        m_radius = radius;
+        updateMatrix();
+        emit radiusChanged();
+    }
+}
 
-    void initShaders();
-    void initTextures();
+float OrbitTransformController::radius() const
+{
+    return m_radius;
+}
 
-private:
-    std::string img_texture;
+void OrbitTransformController::setAngle(float angle)
+{
+    if (!qFuzzyCompare(angle, m_angle)) {
+        m_angle = angle;
+        updateMatrix();
+        emit angleChanged();
+    }
+}
 
-    QBasicTimer timer;
-    QOpenGLShaderProgram program;
-    GeometryEngine *geometries;
+float OrbitTransformController::angle() const
+{
+    return m_angle;
+}
 
-    QOpenGLTexture *texture;
-
-    QMatrix4x4 projection;
-    QMatrix4x4 modelView;
-
-    QVector2D mousePressPosition;
-    QVector3D rotationAxis;
-    qreal angularSpeed = 0;
-    qreal angularSpeedDefaultValue = 3;
-
-    Qt3D::ObjLoader objloader;
-
-};
-
-#endif // MAINWIDGET_H
+void OrbitTransformController::updateMatrix()
+{
+    m_matrix.setToIdentity();
+    m_matrix.rotate(m_angle, QVector3D(0.0f, 1.0f, 0.0f));
+    m_matrix.translate(m_radius, 0.0f, 0.0f);
+    m_target->setMatrix(m_matrix);
+}

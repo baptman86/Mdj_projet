@@ -1,4 +1,6 @@
-QT       += core gui widgets
+QT      += \
+        core gui widgets \
+        3drender
 
 TARGET = OpenGl_intro_LEMOINE
 TEMPLATE = app

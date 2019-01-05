@@ -76,8 +76,7 @@ GeometryEngine::GeometryEngine()
 
     // Initializes plane geometry and transfers it to VBOs
     Hmap.load(":/cube.png");
-    Hmap=Hmap.mirrored();
-    initPlaneGeometry(12,2.0f,2.0f);
+    initPlaneGeometry(2,0.1f,0.1f);
 }
 
 GeometryEngine::~GeometryEngine()
@@ -111,7 +110,6 @@ void GeometryEngine::initPlaneGeometry(int size, float W, float H)
         //random formula : ( (float) rand()/RAND_MAX)*(H_max-H_min) + H_min
 
         int texture = rand()%3;
-
 
         vertices[i] =   {QVector3D( x+(i_img/(size-1))*W, y+(j_img/(size-1))*H,  0 ), QVector2D(1.0f/3*texture, 0.0f)};  // v0
         vertices[i+1] = {QVector3D( x+((i_img+1)/(size-1))*W , y+(j_img/(size-1))*H,  0 ), QVector2D(1.0f/3*(texture+1), 0.0f)}; // v1
