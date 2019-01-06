@@ -5,15 +5,17 @@ QT      += \
 TARGET = OpenGl_intro_LEMOINE
 TEMPLATE = app
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
 
 SOURCES += \
     mainwidget.cpp \
-    geometryengine.cpp
+    geometryengine.cpp \
+    objloader.cpp
 
 HEADERS += \
     mainwidget.h \
-    geometryengine.h
+    geometryengine.h \
+    objloader.h
 
 RESOURCES += \
     shaders.qrc \
@@ -22,3 +24,6 @@ RESOURCES += \
 # install
 target.path = $$[QT_INSTALL_EXAMPLES]/opengl/cube
 INSTALLS += target
+
+DISTFILES += \
+    nurgle_lowpoly.obj

@@ -69,6 +69,8 @@
 #include <mutex>
 #include <condition_variable>*/
 #include <QSet>
+#include <objloader.h>
+#include <filesystem>
 
 using namespace std;
 
@@ -121,7 +123,7 @@ private:
     qreal angularSpeed = 0;
     qreal angularSpeedDefaultValue = 3;
 
-    Qt3D::ObjLoader objloader;
+    //Qt3D::ObjLoader objloader;
 
 };
 

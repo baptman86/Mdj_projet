@@ -168,8 +168,11 @@ void MainWidget::mousePressEvent(QMouseEvent *e)
     cout << tmp.x() << " : " << tmp.y() << " : " << tmp.z() << endl;;*/
 
     //display(projection);
-    cout << program.uniformLocation("mvp_matrix");
-
+    std::vector< QVector3D > vertices;
+    std::vector< QVector2D > uvs;
+    std::vector< QVector3D > normals; // Won't be used at the moment.
+    ObjLoader objloader;
+    bool res = objloader.loadOBJ("./nurgle_lowpoly.obj", vertices, uvs, normals);
 }
 
 void MainWidget::rotation_handler(){
