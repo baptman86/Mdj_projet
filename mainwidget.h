@@ -121,8 +121,6 @@ private:
     qreal angularSpeed = 0;
     qreal angularSpeedDefaultValue = 3;
 
-    Qt3D::ObjLoader objloader;
-
 };
 
 #endif // MAINWIDGET_H
