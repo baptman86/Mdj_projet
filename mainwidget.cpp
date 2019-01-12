@@ -52,13 +52,11 @@
 
 using namespace std;
 
-MainWidget::MainWidget(int fps,std::string img_texture,QWidget *parent) :
+MainWidget::MainWidget(int fps,unsigned int gridSize, QWidget *parent) :
     QOpenGLWidget(parent),
-    geometries(0),
-    texture(0),
-    angularSpeed(0),
-    img_texture(img_texture),
-    fps(fps)
+    fps(fps),
+    grid(MapGrid(gridSize)),
+    gridSize(gridSize)
 {
 }
 
@@ -223,6 +221,10 @@ void MainWidget::timerEvent(QTimerEvent *e)
     update();
 }
 
+void MainWidget::addObject(string objFileName){
+    this->Objects.push_back(Character(objFileName));
+}
+
 //! [1]
 
 void MainWidget::initializeGL()
@@ -242,17 +244,14 @@ void MainWidget::initializeGL()
     glEnable(GL_CULL_FACE);
 //! [2]
 
-    geometries = new GeometryEngine;
+    geometries = new GeometryEngine(gridSize,0.5f,0.5f);
 
-    if(!Character.loadFromObjFile(":/soldierRifle.obj")){
-        std::cerr<<"Unable to load the .obj file"<<std::endl;
+    for(int i=0;i<Objects.size();i++){
+        if(!Objects[i].mesh.loadFromObjFile(QString::fromStdString(string(":/").append(Objects[i].ObjFileName)))){
+            std::cerr<<"Unable to load the .obj file"<<std::endl;
+        }
+        Objects[i].mesh.texture=textureCharacter;
     }
-    Character.texture=textureCharacter;
-
-    if(!Character2.loadFromObjFile(":/soldierRifle.obj")){
-        std::cerr<<"Unable to load the .obj file"<<std::endl;
-    }
-    Character2.texture=textureCharacter;
 
     // Use QBasicTimer because its faster than QTimer
     timer.start(1000/fps, this);
@@ -314,7 +313,7 @@ void MainWidget::initTextures()
     // f.ex. texture coordinate (1.1, 1.2) is same as (0.1, 0.2)
     texture->setWrapMode(QOpenGLTexture::Repeat);
 
-    // Load cube.png image
+    // Load texture image
     textureCharacter = new QOpenGLTexture(QImage(":/soldierRifleTexture.jpg").mirrored());
 
     // Set nearest filtering mode for texture minification
@@ -397,17 +396,9 @@ void MainWidget::paintGL()
     geometries->drawPlaneGeometry(&program);
 
 
-    ////////////////////////MESH DU CHARACTER 1
-    matrix.setToIdentity();
-    matrix.translate(0,0,-1);
-    //matrix.rotate(rotation*QQuaternion::fromAxisAndAngle(QVector3D(1,0,0),90.0f));
-    matrix.scale(0.05f,0.05f,0.05f);
-    matrix.rotate(rotation);
+    ////////////////////////MESH DES OBJETS
 
-    Character.texture->bind();
     programMesh.bind();
-    // Set modelview-projection matrix
-    programMesh.setUniformValue("m_matrix", matrix);
     programMesh.setUniformValue("v_matrix", QMatrix4x4());
     programMesh.setUniformValue("p_matrix", projection);
     programMesh.setUniformValue("light_position", QVector3D(light[0], light[1], light[2]));
@@ -418,16 +409,21 @@ void MainWidget::paintGL()
     // Draw cube geometry
     programMesh.setUniformValue("enable_texture", true);
 
-    Character.draw(&programMesh);
-    // Request an update
+    QVector3D size = QVector3D(0.01f*gridSize,0.01f*gridSize,0.01f*gridSize);
 
-    ////////////////////////MESH DU CHARACTER 2
-    //matrix.rotate(rotation);
-    matrix.translate(-3,0,0);
-    programMesh.setUniformValue("m_matrix", matrix);
+    for(int i=0;i<Objects.size();i++){
+        matrix.setToIdentity();
+        matrix.translate(0,0,-1);
+        matrix.scale(size);
+        matrix.rotate(rotation);
 
-    Character2.texture->bind();
-    Character2.draw(&programMesh);
+
+        Objects[i].mesh.texture->bind();
+        // Set modelview-projection matrix
+        programMesh.setUniformValue("m_matrix", matrix);
+
+        Objects[i].mesh.draw(&programMesh);
+    }
     update();
 
 

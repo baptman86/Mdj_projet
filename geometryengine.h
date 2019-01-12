@@ -60,7 +60,7 @@
 class GeometryEngine : protected QOpenGLFunctions
 {
 public:
-    GeometryEngine();
+    GeometryEngine(int gridSize, float height, float length);
     virtual ~GeometryEngine();
 
     int indexCount;

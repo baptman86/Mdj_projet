@@ -5,7 +5,11 @@ QT      += \
 TARGET = OpenGl_intro_LEMOINE
 TEMPLATE = app
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    object.cpp \
+    obstacle.cpp \
+    character.cpp \
+    mapgrid.cpp
 
 SOURCES += \
     mainwidget.cpp \
@@ -15,7 +19,11 @@ SOURCES += \
 HEADERS += \
     mainwidget.h \
     geometryengine.h \
-    mesh.h
+    mesh.h \
+    object.h \
+    obstacle.h \
+    character.h \
+    mapgrid.h
 
 RESOURCES += \
     shaders.qrc \

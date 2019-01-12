@@ -157,7 +157,6 @@ bool Mesh::loadFromObjFile(QString filename)
     return true;
 }
 
-
 void Mesh::draw(QOpenGLShaderProgram* program)
 {
     if(!VBO.bind())

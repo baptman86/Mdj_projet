@@ -8,6 +8,8 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
 
+using namespace std;
+
 typedef struct {
     QVector3D position;
     QVector2D textCoord;
@@ -29,7 +31,6 @@ public:
 
     bool loadFromObjFile(QString filename);
     void draw(QOpenGLShaderProgram* program);
-
 };
 
 #endif // MESH_H

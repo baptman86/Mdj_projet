@@ -71,7 +71,9 @@
 #include <QSet>
 #include <QTime>
 #include <QOpenGLTexture>
-#include "mesh.h"
+#include "object.h"
+#include "character.h"
+#include "grid.h"
 
 using namespace std;
 
@@ -82,13 +84,17 @@ class MainWidget : public QOpenGLWidget, protected QOpenGLFunctions
     Q_OBJECT
 
 public:
-    explicit MainWidget(int fps=60,std::string img_texture = "NB",QWidget *parent = 0);
+    explicit MainWidget(int fps=60,unsigned int gridSize = 8, QWidget *parent = 0);
     ~MainWidget();
+
+    void addObject(string objFileName);
+
     int fps;
     QQuaternion rotation;
     QQuaternion init_rotation;
     qreal target_angle = 0;
     qreal angle = 0;
+    Grid grid;
 
 protected:
     void mousePressEvent(QMouseEvent *e) override;
@@ -107,16 +113,19 @@ protected:
     void initShaders();
     void initTextures();
 
+
+
     QVector3D CharacterPosition;
     size_t fps_count; // frames per second
     size_t frames_count;
     size_t ups_count; // updates per second
     size_t updates_count;
 
+    size_t gridSize;
+
     QTime time;
 
 private:
-    std::string img_texture;
 
     QBasicTimer timer;
     QOpenGLShaderProgram program;
@@ -129,8 +138,7 @@ private:
     QMatrix4x4 projection;
     QMatrix4x4 modelView;
 
-    Mesh Character;
-    Mesh Character2;
+    vector<Object> Objects;
 
     QVector2D mousePressPosition;
     QVector3D rotationAxis;
