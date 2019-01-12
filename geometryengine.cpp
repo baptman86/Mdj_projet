@@ -76,7 +76,7 @@ GeometryEngine::GeometryEngine()
 
     // Initializes plane geometry and transfers it to VBOs
     Hmap.load(":/cube.png");
-    initPlaneGeometry(2,0.1f,0.1f);
+    initPlaneGeometry(8,0.5f,0.5f);
 }
 
 GeometryEngine::~GeometryEngine()

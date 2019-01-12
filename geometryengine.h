@@ -63,6 +63,8 @@ public:
     GeometryEngine();
     virtual ~GeometryEngine();
 
+    int indexCount;
+
     void drawCubeGeometry(QOpenGLShaderProgram *program);
     void drawPlaneGeometry(QOpenGLShaderProgram *program);
 

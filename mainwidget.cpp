@@ -193,7 +193,7 @@ void MainWidget::rotation_handler(){
 }
 
 void MainWidget::move_handler(){
-    float cameraSpeed = 0.04f;
+    float cameraSpeed = 0.02f;
     float s = sqrt(2);
 
     if(key_pressed.contains(Qt::Key_Z)){
@@ -207,6 +207,12 @@ void MainWidget::move_handler(){
     }
     if(key_pressed.contains(Qt::Key_Q)){
         projection.translate(QVector3D(cameraSpeed,0,0));
+    }
+    if(key_pressed.contains(Qt::Key_Plus)){
+        projection.translate(QVector3D(0,0,cameraSpeed));
+    }
+    if(key_pressed.contains(Qt::Key_Minus)){
+        projection.translate(QVector3D(0,0,-cameraSpeed));
     }
 }
 
@@ -238,6 +244,15 @@ void MainWidget::initializeGL()
 
     geometries = new GeometryEngine;
 
+    if(!Character.loadFromObjFile(":/soldierRifle.obj")){
+        std::cerr<<"Unable to load the .obj file"<<std::endl;
+    }
+    Character.texture=textureCharacter;
+
+    if(!Character2.loadFromObjFile(":/soldierRifle.obj")){
+        std::cerr<<"Unable to load the .obj file"<<std::endl;
+    }
+    Character2.texture=textureCharacter;
 
     // Use QBasicTimer because its faster than QTimer
     timer.start(1000/fps, this);
@@ -247,27 +262,46 @@ void MainWidget::initializeGL()
 void MainWidget::initShaders()
 {
     // Compile vertex shader
-    if (!program.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vshader.glsl"))
-        close();
+    if (!program.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vshader.glsl")){
+        std::cerr << "Error while compiling vertex shader: " << program.log().toStdString() << std::endl;
+        exit(1);
+    }
+    // Compile fragment shader
+    if (!program.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fshader.glsl")){
+        std::cerr << "Error while compiling fragment shader: " << program.log().toStdString() << std::endl;
+        exit(1);
+    }
+    // Link shader pipeline
+    if (!program.link()){
+        std::cerr << "Error while link fragment shader: " << program.log().toStdString() << std::endl;
+        exit(1);
+    }
+    //MESH
+    // Compile vertex shader
+    if (!programMesh.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vshadermesh.vert")){
+        std::cerr << "Error while compiling vertex shader mesh: " << programMesh.log().toStdString() << std::endl;
+        exit(1);
+    }
 
     // Compile fragment shader
-    if (!program.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fshader.glsl"))
-        close();
+    if (!programMesh.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fshadermesh.frag")){
+        std::cerr << "Error while compiling fragment shader mesh: " << programMesh.log().toStdString() << std::endl;
+        exit(1);
+    }
 
     // Link shader pipeline
-    if (!program.link())
-        close();
+    if (!programMesh.link()){
+        std::cerr << "Error while link fragment shader mesh: " << programMesh.log().toStdString() << std::endl;
+        exit(1);
+    }
 
-    // Bind shader pipeline for use
-    if (!program.bind())
-        close();
 }
 //! [3]
 
 //! [4]
 void MainWidget::initTextures()
 {
-    // Load cube.png image
+    // Load groundSquart.png image
     texture = new QOpenGLTexture(QImage(":/groundSquart.png"));
 
     // Set nearest filtering mode for texture minification
@@ -279,6 +313,19 @@ void MainWidget::initTextures()
     // Wrap texture coordinates by repeating
     // f.ex. texture coordinate (1.1, 1.2) is same as (0.1, 0.2)
     texture->setWrapMode(QOpenGLTexture::Repeat);
+
+    // Load cube.png image
+    textureCharacter = new QOpenGLTexture(QImage(":/soldierRifleTexture.jpg").mirrored());
+
+    // Set nearest filtering mode for texture minification
+    textureCharacter->setMinificationFilter(QOpenGLTexture::Nearest);
+
+    // Set bilinear filtering mode for texture magnification
+    textureCharacter->setMagnificationFilter(QOpenGLTexture::Linear);
+
+    // Wrap texture coordinates by repeating
+    // f.ex. texture coordinate (1.1, 1.2) is same as (0.1, 0.2)
+    textureCharacter->setWrapMode(QOpenGLTexture::Repeat);
 }
 //! [4]
 
@@ -300,9 +347,9 @@ void MainWidget::resizeGL(int w, int h)
 
     // Set perspective projection
     projection.perspective(fov, aspect, zNear, zFar);
-    QVector3D centerOfInterest(0, 0, 0), up(1, 0, 0);
+    /*QVector3D centerOfInterest(0, 0, 0), up(1, 0, 0);
     modelView.setToIdentity();
-    modelView.lookAt(eye, centerOfInterest, up);
+    modelView.lookAt(eye, centerOfInterest, up);*/
 }
 //! [5]
 
@@ -311,13 +358,33 @@ void MainWidget::paintGL()
     // Clear color and depth buffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    texture->bind();
-
 //! [6]
     // Calculate model view transformation
     QMatrix4x4 matrix;
     matrix.translate(0.0, 0.0, -1.0);
     matrix.rotate(rotation);
+
+    //////////////CAMERA
+    const float x = 1.0f;
+    const float y = 5.0f;
+    const float z = 1.0f;
+    QVector3D eye = QVector3D(x, y, z); //position de la camera
+    QVector3D targetCamera = QVector3D(CharacterPosition); //cible de la camera
+    QVector3D up = QVector3D(1.0f, 0.0f, 0.0f); //permet une stabilité de la caméra
+    QMatrix4x4 view;
+    view.lookAt(eye, targetCamera, up);
+    float light[]={
+       0.0f,0.0f,0.0f, //positon light
+       1.0f,1.0f,1.0f  //color light
+    };
+
+    /////////////////////TERRAIN
+    texture->bind();
+
+    if (!program.bind()){
+        std::cerr << "(MainWidget::paintGL Error while binding fragment shader: " << program.log().toStdString() << std::endl;
+        exit(1);
+    }
 
     // Set modelview-projection matrix
     program.setUniformValue("mvp_matrix", projection * matrix);
@@ -328,4 +395,40 @@ void MainWidget::paintGL()
 
     // Draw cube geometry
     geometries->drawPlaneGeometry(&program);
+
+
+    ////////////////////////MESH DU CHARACTER 1
+    matrix.setToIdentity();
+    matrix.translate(0,0,-1);
+    //matrix.rotate(rotation*QQuaternion::fromAxisAndAngle(QVector3D(1,0,0),90.0f));
+    matrix.scale(0.05f,0.05f,0.05f);
+    matrix.rotate(rotation);
+
+    Character.texture->bind();
+    programMesh.bind();
+    // Set modelview-projection matrix
+    programMesh.setUniformValue("m_matrix", matrix);
+    programMesh.setUniformValue("v_matrix", QMatrix4x4());
+    programMesh.setUniformValue("p_matrix", projection);
+    programMesh.setUniformValue("light_position", QVector3D(light[0], light[1], light[2]));
+    programMesh.setUniformValue("light_color", QVector3D(light[3], light[4], light[5]));
+    // Use texture unit 0 which contains red_texture.png
+    programMesh.setUniformValue("texture", 0);
+    programMesh.setUniformValue("enable_light", true);
+    // Draw cube geometry
+    programMesh.setUniformValue("enable_texture", true);
+
+    Character.draw(&programMesh);
+    // Request an update
+
+    ////////////////////////MESH DU CHARACTER 2
+    //matrix.rotate(rotation);
+    matrix.translate(-3,0,0);
+    programMesh.setUniformValue("m_matrix", matrix);
+
+    Character2.texture->bind();
+    Character2.draw(&programMesh);
+    update();
+
+
 }

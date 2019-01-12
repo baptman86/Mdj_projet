@@ -69,6 +69,9 @@
 #include <mutex>
 #include <condition_variable>*/
 #include <QSet>
+#include <QTime>
+#include <QOpenGLTexture>
+#include "mesh.h"
 
 using namespace std;
 
@@ -104,17 +107,30 @@ protected:
     void initShaders();
     void initTextures();
 
+    QVector3D CharacterPosition;
+    size_t fps_count; // frames per second
+    size_t frames_count;
+    size_t ups_count; // updates per second
+    size_t updates_count;
+
+    QTime time;
+
 private:
     std::string img_texture;
 
     QBasicTimer timer;
     QOpenGLShaderProgram program;
+    QOpenGLShaderProgram programMesh;
     GeometryEngine *geometries;
 
     QOpenGLTexture *texture;
+    QOpenGLTexture *textureCharacter;
 
     QMatrix4x4 projection;
     QMatrix4x4 modelView;
+
+    Mesh Character;
+    Mesh Character2;
 
     QVector2D mousePressPosition;
     QVector3D rotationAxis;
