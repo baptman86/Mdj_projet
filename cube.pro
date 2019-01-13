@@ -9,7 +9,10 @@ SOURCES += main.cpp \
     object.cpp \
     obstacle.cpp \
     character.cpp \
-    mapgrid.cpp
+    mapgrid.cpp \
+    astar.cpp \
+    weapon.cpp \
+    rifle.cpp
 
 SOURCES += \
     mainwidget.cpp \
@@ -23,7 +26,9 @@ HEADERS += \
     object.h \
     obstacle.h \
     character.h \
-    mapgrid.h
+    mapgrid.h \
+    weapon.h \
+    rifle.h
 
 RESOURCES += \
     shaders.qrc \

@@ -73,7 +73,7 @@
 #include <QOpenGLTexture>
 #include "object.h"
 #include "character.h"
-#include "grid.h"
+#include "mapgrid.h"
 
 using namespace std;
 
@@ -94,14 +94,14 @@ public:
     QQuaternion init_rotation;
     qreal target_angle = 0;
     qreal angle = 0;
-    Grid grid;
+    MapGrid grid;
 
 protected:
     void mousePressEvent(QMouseEvent *e) override;
     //void mouseReleaseEvent(QMouseEvent *e) override;
-    void MainWidget::keyPressEvent(QKeyEvent *e) override;
-    void MainWidget::keyReleaseEvent(QKeyEvent *e) override;
-    void MainWidget::wheelEvent(QWheelEvent *event) override;
+    void keyPressEvent(QKeyEvent *e) override;
+    void keyReleaseEvent(QKeyEvent *e) override;
+    void wheelEvent(QWheelEvent *event) override;
     void timerEvent(QTimerEvent *e) override;
     void rotation_handler();
     void move_handler();

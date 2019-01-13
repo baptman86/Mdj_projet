@@ -1,0 +1,28 @@
+#include "pathfinder.h"
+
+pathfinder::pathfinder()
+{
+start: findPath {
+
+    openList.push(start)
+    While (current != end) {
+       if openList is empty
+           error: no path found
+        get current.neighbours
+        for each neighbour {
+            //prevents the same cell being looked at twice
+            if neighbour is not in closedList {
+                if neighbour is wall OR outside maze 
+                    discard neighbour
+                else 
+                    Add to open list
+            }
+        }
+        sort openList by heuristic (lowest to front)
+        current = openlist.front
+        openList.pop_front
+    }
+
+    path = closedlist
+End: findPath
+}

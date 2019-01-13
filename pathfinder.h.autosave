@@ -1,0 +1,17 @@
+#ifndef PATHFINDER_H
+#define PATHFINDER_H
+
+#include <queue>
+#include "mapgrid.h"
+
+class pathfinder
+{
+public:
+    pathfinder();
+
+private:
+    queue<gridData> openList;
+    queue<gridData> openList;
+};
+
+#endif // PATHFINDER_H
