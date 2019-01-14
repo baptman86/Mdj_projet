@@ -56,7 +56,8 @@ MainWidget::MainWidget(int fps,unsigned int gridSize, float size, QWidget *paren
     QOpenGLWidget(parent),
     fps(fps),
     grid(MapGrid(gridSize)),
-    size(size)
+    size(size),
+    cursorCoord(make_pair(gridSize/2,gridSize/2))
 {
 }
 
@@ -101,12 +102,33 @@ void MainWidget::keyPressEvent(QKeyEvent *e){
     if(e->key()==Qt::Key_A){
         /*std::thread t1([this]() { rotate(this, current, 45.0f); });
         t1.detach();*/
-        target_angle+=45.0;
+        target_angle-=45.0;
     }
     if(e->key()==Qt::Key_E){
         /*std::thread t1([this]() { rotate(this, current, -45.0f); });
         t1.detach();*/
-        target_angle-=45.0;
+        target_angle+=45.0;
+    }
+
+    if(e->key()==Qt::Key_Up){
+        /*std::thread t1([this]() { rotate(this, current, -45.0f); });
+        t1.detach();*/
+        cursorCoord.second++;
+    }
+    if(e->key()==Qt::Key_Down){
+        /*std::thread t1([this]() { rotate(this, current, -45.0f); });
+        t1.detach();*/
+        cursorCoord.second--;
+    }
+    if(e->key()==Qt::Key_Right){
+        /*std::thread t1([this]() { rotate(this, current, -45.0f); });
+        t1.detach();*/
+        cursorCoord.first++;
+    }
+    if(e->key()==Qt::Key_Left){
+        /*std::thread t1([this]() { rotate(this, current, -45.0f); });
+        t1.detach();*/
+        cursorCoord.first--;
     }
     update();
 }
@@ -217,6 +239,10 @@ void MainWidget::initializeGL()
         if(!grid.objects[i].mesh.loadFromObjFile(QString::fromStdString(string(":/").append(grid.objects[i].ObjFileName)))){
             std::cerr<<"Unable to load the .obj file"<<std::endl;
         }
+    }
+
+    if(!cursor.loadFromObjFile(":/selector.obj")){
+        std::cerr<<"Unable to load the cursor .obj file"<<std::endl;
     }
 
 
@@ -359,24 +385,44 @@ void MainWidget::paintGL()
     // Draw cube geometry
     geometries->drawPlaneGeometry(&program);
 
-
-    ////////////////////////MESH DES OBJETS
-    programMesh.bind();
-    programMesh.setUniformValue("v_matrix", QMatrix4x4());
-    programMesh.setUniformValue("p_matrix", projection);
-    programMesh.setUniformValue("light_position", QVector3D(light[0], light[1], light[2]));
-    programMesh.setUniformValue("light_color", QVector3D(light[3], light[4], light[5]));
-    // Use texture unit 0 which contains red_texture.png
-    programMesh.setUniformValue("texture", 0);
-    programMesh.setUniformValue("enable_light", true);
-    // Draw cube geometry
-    programMesh.setUniformValue("enable_texture", true);
-    programMesh.setUniformValue("color", QVector4D(0.8f,0,0,0.5f));
-
-
+    ////////////////////////MESHS
 
     int gridSize = grid.getSize();
     QVector3D scaling = QVector3D(1.0f/gridSize*size,1.0f/gridSize*size,1.0f/gridSize*size);
+
+    ////////////////////////MESH DU CURSEUR
+
+    programMesh.bind();
+    programMesh.setUniformValue("enable_texture", false);
+    programMesh.setUniformValue("color", QVector4D(1,0,0,1));
+
+    matrix.setToIdentity();
+    matrix.translate(0,0,-1);
+    matrix.rotate(rotation);
+
+    matrix.translate((size/(gridSize-1)*cursorCoord.first+size/(gridSize-1)*(cursorCoord.first+1))/2-size/2,(size/(gridSize-1)*cursorCoord.second+size/(gridSize-1)*(cursorCoord.second+1))/2-size/2,0);
+    matrix.scale(scaling*0.5f);
+
+    programMesh.setUniformValue("m_matrix", matrix);
+
+    cursor.texture=nullptr;
+    cursor.draw(&programMesh);
+
+    ////////////////////////MESH DES OBJETS
+    ///
+    programMesh.setUniformValue("v_matrix", QMatrix4x4());
+    programMesh.setUniformValue("p_matrix", projection);
+    //programMesh.setUniformValue("light_position", QVector3D(light[0], light[1], light[2]));
+    //programMesh.setUniformValue("light_color", QVector3D(light[3], light[4], light[5]));
+    // Use texture unit 0 which contains red_texture.png
+    programMesh.setUniformValue("texture", 0);
+    //programMesh.setUniformValue("enable_light", true);
+    // Draw cube geometry
+    programMesh.setUniformValue("enable_texture", true);
+
+
+
+
 
     for(int i=0;i<grid.objects.size();i++){
         matrix.setToIdentity();

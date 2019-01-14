@@ -3,5 +3,6 @@
         <file>Crash.obj</file>
         <file>sphere.obj</file>
         <file>soldierRifle.obj</file>
+        <file>selector.obj</file>
     </qresource>
 </RCC>

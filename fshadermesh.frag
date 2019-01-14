@@ -24,7 +24,7 @@ void main()
     }
     else
     {
-        c = vec4(the_color, 1.0);
+        c = color;
     }
 
     if (enable_light)

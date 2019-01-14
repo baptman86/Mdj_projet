@@ -115,6 +115,10 @@ protected:
 
     float size;
 
+    pair<int,int> cursorCoord;
+
+    Mesh cursor;
+
 
     QVector3D CharacterPosition;
     size_t fps_count; // frames per second
