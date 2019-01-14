@@ -34,30 +34,36 @@ Object MapGrid::findObjectById(int id){
     }
 }
 
+
+//id = 0 <=> pas d'objet, donc premier objet : id = 1, dans objects[0]
 bool MapGrid::addObject(Object o){
-    this->objects.push_back(make_pair(this->data.size(),o));
-    return true;
+    return this->addObject(o,-1,-1);
 }
 
 
 bool MapGrid::addObject(Object o, int x, int y){
     int id = this->data.size();
-
     this->objects.push_back(make_pair(id,o));
-    this->data[x][y].ObjId=id;
-    return true;
+
+    return this->setObject(id,x,y);
 }
 
 bool MapGrid::setObject(int id, int x, int y){
-    for(pair<int, Object> pair : this->objects){
-        if(pair.first=id){
-            this->data[x][y].ObjId=id;
-            return true;
-        }
-    }
-    return false;
-}
 
+
+    this->objects[id-1].second.setCoord(x,y);
+    if(x >= 0 && y >= 0) {
+        this->data[x][y].ObjId=id;
+    }
+    return true;
+    //    for(pair<int, Object> pair : this->objects){
+    //        if(pair.first=id){
+    //            this->data[x][y].ObjId=id;
+    //            pair.second.setCoord(x,y);
+    //            return true;
+    //        }
+    //    }
+}
 
 //Convertit la grille en nodes exploitables par astar. Détermine les coûts.
 //vector<Node> MapGrid::toNodes(){
