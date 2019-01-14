@@ -5,5 +5,6 @@
         <file>canyon.pgm</file>
         <file>ground.png</file>
         <file>groundSquart.png</file>
+        <file>soldierRifleTexture.jpg</file>
     </qresource>
 </RCC>

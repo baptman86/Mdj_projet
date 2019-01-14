@@ -68,8 +68,11 @@ int main(int argc, char *argv[])
     app.setApplicationVersion("0.1");
 
 #ifndef QT_NO_OPENGL
-    MainWidget widget1(60);
-    widget1.show();
+    MainWidget widget(60,12);
+    widget.grid.addObject(Character("soldierRifle.obj","soldierRifleTexture.jpg",5,5,0),3,3);
+    widget.grid.addObject(Character("soldierRifle.obj","soldierRifleTexture.jpg",5,5,0),1,3);
+    widget.grid.addObject(Character("soldierRifle.obj","soldierRifleTexture.jpg",5,5,1),5,7);
+    widget.show();
 #else
     QLabel note("OpenGL Support required");
     note.show();

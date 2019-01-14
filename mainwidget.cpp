@@ -52,13 +52,11 @@
 
 using namespace std;
 
-MainWidget::MainWidget(int fps,std::string img_texture,QWidget *parent) :
+MainWidget::MainWidget(int fps,unsigned int gridSize, float size, QWidget *parent) :
     QOpenGLWidget(parent),
-    geometries(0),
-    texture(0),
-    angularSpeed(0),
-    img_texture(img_texture),
-    fps(fps)
+    fps(fps),
+    grid(MapGrid(gridSize)),
+    size(size)
 {
 }
 
@@ -72,8 +70,6 @@ MainWidget::~MainWidget()
     doneCurrent();
 }
 
-//! [0]
-//!
 
 /*mutex mtx;
 condition_variable cv;
@@ -137,42 +133,12 @@ void display(QMatrix4x4 mat){
     cout << endl;
 }
 
+
+int euh=0;
 void MainWidget::mousePressEvent(QMouseEvent *e)
 {
-    /*rayCaster->setPosition(e->localPos().toPoint());
-    rayCaster->setObjectName("mouseRayCaster");
-    rayCaster->setRunMode(rayCaster->SingleShot);
-    rayCaster->dumpObjectInfo();*/
-
-    // Save mouse press position
-    /*mousePressPosition = QVector2D(e->localPos());
-    cout << mousePressPosition.x() << " : " << mousePressPosition.y() << endl;
-    float x = (2.0f * mousePressPosition.x()) / this->width() - 1.0f;
-    float y = 1.0f - (2.0f * mousePressPosition.y()) / this->height();
-    float z = 1.0f;
-    QVector3D ray_nds = QVector3D(x, y, z);
-    QVector4D ray_clip = QVector4D(ray_nds.x(),ray_nds.y(), -1.0, 1.0);
-    QVector4D ray_eye = projection.inverted() * ray_clip;
-    ray_eye = QVector4D(ray_eye.x(),ray_eye.y(), -1.0, 0.0);
-    QVector3D ray_wor = QVector3D((modelView.inverted() * ray_eye).x(),(modelView.inverted() * ray_eye).y(),(modelView.inverted() * ray_eye).z());
-    ray_wor.normalize();
-    cout << ray_eye.x() << " : " << ray_eye.y() << " : " << ray_eye.z() << endl;
-    cout << ray_wor.x() << " : " << ray_wor.y() << " : " << ray_wor.z() << endl;*/
-
-    //QVector3D viewptr = QVector3D(mousePressPosition.x(),mousePressPosition.y(),0.0);
-    //cout << viewptr.unproject(modelView,projection,geometry()).x() << viewptr.unproject(modelView,projection,geometry()).y() << viewptr.unproject(modelView,projection,geometry()).z() << endl;
-
-    /*mousePressPosition = QVector2D(e->localPos());
-    QVector3D viewptr = QVector3D(0.0,0.0,0.0);
-    QVector3D tmp = viewptr*projection;
-    cout << tmp.x() << " : " << tmp.y() << " : " << tmp.z() << endl;;*/
-
-    //display(projection);
-    std::vector< QVector3D > vertices;
-    std::vector< QVector2D > uvs;
-    std::vector< QVector3D > normals; // Won't be used at the moment.
-    ObjLoader objloader;
-    bool res = objloader.loadOBJ("./nurgle_lowpoly.obj", vertices, uvs, normals);
+    grid.setObject(0,euh,euh);
+    euh++;
 }
 
 void MainWidget::rotation_handler(){
@@ -196,7 +162,7 @@ void MainWidget::rotation_handler(){
 }
 
 void MainWidget::move_handler(){
-    float cameraSpeed = 0.04f;
+    float cameraSpeed = 0.02f;
     float s = sqrt(2);
 
     if(key_pressed.contains(Qt::Key_Z)){
@@ -210,6 +176,12 @@ void MainWidget::move_handler(){
     }
     if(key_pressed.contains(Qt::Key_Q)){
         projection.translate(QVector3D(cameraSpeed,0,0));
+    }
+    if(key_pressed.contains(Qt::Key_Plus)){
+        projection.translate(QVector3D(0,0,cameraSpeed));
+    }
+    if(key_pressed.contains(Qt::Key_Minus)){
+        projection.translate(QVector3D(0,0,-cameraSpeed));
     }
 }
 
@@ -239,7 +211,13 @@ void MainWidget::initializeGL()
     glEnable(GL_CULL_FACE);
 //! [2]
 
-    geometries = new GeometryEngine;
+    geometries = new GeometryEngine(grid.getSize(),0.5f);
+
+    for(int i=0;i<grid.objects.size();i++){
+        if(!grid.objects[i].mesh.loadFromObjFile(QString::fromStdString(string(":/").append(grid.objects[i].ObjFileName)))){
+            std::cerr<<"Unable to load the .obj file"<<std::endl;
+        }
+    }
 
 
     // Use QBasicTimer because its faster than QTimer
@@ -250,27 +228,46 @@ void MainWidget::initializeGL()
 void MainWidget::initShaders()
 {
     // Compile vertex shader
-    if (!program.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vshader.glsl"))
-        close();
+    if (!program.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vshader.glsl")){
+        std::cerr << "Error while compiling vertex shader: " << program.log().toStdString() << std::endl;
+        exit(1);
+    }
+    // Compile fragment shader
+    if (!program.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fshader.glsl")){
+        std::cerr << "Error while compiling fragment shader: " << program.log().toStdString() << std::endl;
+        exit(1);
+    }
+    // Link shader pipeline
+    if (!program.link()){
+        std::cerr << "Error while link fragment shader: " << program.log().toStdString() << std::endl;
+        exit(1);
+    }
+    //MESH
+    // Compile vertex shader
+    if (!programMesh.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vshadermesh.vert")){
+        std::cerr << "Error while compiling vertex shader mesh: " << programMesh.log().toStdString() << std::endl;
+        exit(1);
+    }
 
     // Compile fragment shader
-    if (!program.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fshader.glsl"))
-        close();
+    if (!programMesh.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fshadermesh.frag")){
+        std::cerr << "Error while compiling fragment shader mesh: " << programMesh.log().toStdString() << std::endl;
+        exit(1);
+    }
 
     // Link shader pipeline
-    if (!program.link())
-        close();
+    if (!programMesh.link()){
+        std::cerr << "Error while link fragment shader mesh: " << programMesh.log().toStdString() << std::endl;
+        exit(1);
+    }
 
-    // Bind shader pipeline for use
-    if (!program.bind())
-        close();
 }
 //! [3]
 
 //! [4]
 void MainWidget::initTextures()
 {
-    // Load cube.png image
+    // Load groundSquart.png image
     texture = new QOpenGLTexture(QImage(":/groundSquart.png"));
 
     // Set nearest filtering mode for texture minification
@@ -282,6 +279,15 @@ void MainWidget::initTextures()
     // Wrap texture coordinates by repeating
     // f.ex. texture coordinate (1.1, 1.2) is same as (0.1, 0.2)
     texture->setWrapMode(QOpenGLTexture::Repeat);
+    for(int i=0;i<grid.objects.size();i++){
+
+        grid.objects[i].mesh.texture=new QOpenGLTexture(QImage(QString::fromStdString(string(":/").append(grid.objects[i].TextureFileName))).mirrored());
+
+        grid.objects[i].mesh.texture->setMinificationFilter(QOpenGLTexture::Nearest);
+        grid.objects[i].mesh.texture->setMagnificationFilter(QOpenGLTexture::Linear);
+        grid.objects[i].mesh.texture->setWrapMode(QOpenGLTexture::Repeat);
+    }
+
 }
 //! [4]
 
@@ -303,24 +309,45 @@ void MainWidget::resizeGL(int w, int h)
 
     // Set perspective projection
     projection.perspective(fov, aspect, zNear, zFar);
-    QVector3D centerOfInterest(0, 0, 0), up(1, 0, 0);
+    /*QVector3D centerOfInterest(0, 0, 0), up(1, 0, 0);
     modelView.setToIdentity();
-    modelView.lookAt(eye, centerOfInterest, up);
+    modelView.lookAt(eye, centerOfInterest, up);*/
 }
 //! [5]
+
 
 void MainWidget::paintGL()
 {
     // Clear color and depth buffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    texture->bind();
-
 //! [6]
     // Calculate model view transformation
     QMatrix4x4 matrix;
     matrix.translate(0.0, 0.0, -1.0);
     matrix.rotate(rotation);
+
+    //////////////CAMERA
+    const float x = 1.0f;
+    const float y = 5.0f;
+    const float z = 1.0f;
+    QVector3D eye = QVector3D(x, y, z); //position de la camera
+    QVector3D targetCamera = QVector3D(CharacterPosition); //cible de la camera
+    QVector3D up = QVector3D(1.0f, 0.0f, 0.0f); //permet une stabilité de la caméra
+    QMatrix4x4 view;
+    view.lookAt(eye, targetCamera, up);
+    float light[]={
+       0.0f,0.0f,0.0f, //positon light
+       1.0f,1.0f,1.0f  //color light
+    };
+
+    /////////////////////TERRAIN
+    texture->bind();
+
+    if (!program.bind()){
+        std::cerr << "(MainWidget::paintGL Error while binding fragment shader: " << program.log().toStdString() << std::endl;
+        exit(1);
+    }
 
     // Set modelview-projection matrix
     program.setUniformValue("mvp_matrix", projection * matrix);
@@ -331,4 +358,41 @@ void MainWidget::paintGL()
 
     // Draw cube geometry
     geometries->drawPlaneGeometry(&program);
+
+
+    ////////////////////////MESH DES OBJETS
+    programMesh.bind();
+    programMesh.setUniformValue("v_matrix", QMatrix4x4());
+    programMesh.setUniformValue("p_matrix", projection);
+    programMesh.setUniformValue("light_position", QVector3D(light[0], light[1], light[2]));
+    programMesh.setUniformValue("light_color", QVector3D(light[3], light[4], light[5]));
+    // Use texture unit 0 which contains red_texture.png
+    programMesh.setUniformValue("texture", 0);
+    programMesh.setUniformValue("enable_light", true);
+    // Draw cube geometry
+    programMesh.setUniformValue("enable_texture", true);
+    programMesh.setUniformValue("color", QVector4D(0.8f,0,0,0.5f));
+
+
+
+    int gridSize = grid.getSize();
+    QVector3D scaling = QVector3D(1.0f/gridSize*size,1.0f/gridSize*size,1.0f/gridSize*size);
+
+    for(int i=0;i<grid.objects.size();i++){
+        matrix.setToIdentity();
+        matrix.translate(0,0,-1);
+        matrix.rotate(rotation);
+        matrix.translate(0.0f,-0.15f/gridSize*size,0.0f);
+
+
+        matrix.translate((size/(gridSize-1)*grid.objects[i].getCoord().first+size/(gridSize-1)*(grid.objects[i].getCoord().first+1))/2-size/2,(size/(gridSize-1)*grid.objects[i].getCoord().second+size/(gridSize-1)*(grid.objects[i].getCoord().second+1))/2-size/2,0);
+        matrix.scale(scaling);
+
+
+        grid.objects[i].mesh.texture->bind();
+        // Set modelview-projection matrix
+        programMesh.setUniformValue("m_matrix", matrix);
+
+        grid.objects[i].mesh.draw(&programMesh);
+    }
 }

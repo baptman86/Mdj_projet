@@ -65,7 +65,7 @@ struct VertexData
 };
 
 //! [0]
-GeometryEngine::GeometryEngine()
+GeometryEngine::GeometryEngine(int gridSize,float size)
     : indexBuf(QOpenGLBuffer::IndexBuffer)
 {
     initializeOpenGLFunctions();
@@ -76,7 +76,7 @@ GeometryEngine::GeometryEngine()
 
     // Initializes plane geometry and transfers it to VBOs
     Hmap.load(":/cube.png");
-    initPlaneGeometry(20,2.0f,2.0f);
+    initPlaneGeometry(gridSize,size);
 }
 
 GeometryEngine::~GeometryEngine()
@@ -88,33 +88,33 @@ GeometryEngine::~GeometryEngine()
 
 
 //init data of a plane with size² vertex, starting from point (x,y), height of h et width of w. create a randomized z component for each vertices between 0 and z_max. texture_x and texture_y are exclusives of cube.png and give starting point to get texture from this file.
-void GeometryEngine::initPlaneGeometry(int size, float W, float H)
+void GeometryEngine::initPlaneGeometry(int gridSize, float size)
 {
     // For cube we would need only 8 vertices but we have to
     // duplicate vertex for each face because texture coordinate
     // is different.
 
-    float x = -W/2, y = -H/2;
+    float x = -size/2, y = -size/2;
     int i_indices = 0;
     float i_img, j_img, z;
     float H_min = 0.0f, H_max = 1.0f;
 
-    VertexData *vertices = new VertexData[size*size*4];
-    GLushort *indices = new GLushort[size*size*6];
+    VertexData *vertices = new VertexData[gridSize*gridSize*4];
+    GLushort *indices = new GLushort[gridSize*gridSize*6];
 
-    for(int i=0; i<size*size*4; i+=4){
+    for(int i=0; i<gridSize*gridSize*4; i+=4){
 
-        i_img = ((float) ( (i/4) % size ) );
-        j_img = ((float) ( (i/4) / size ) );
+        i_img = ((float) ( (i/4) % gridSize ) );
+        j_img = ((float) ( (i/4) / gridSize ) );
 
         //random formula : ( (float) rand()/RAND_MAX)*(H_max-H_min) + H_min
 
         int texture = rand()%3;
 
-        vertices[i] =   {QVector3D( x+(i_img/(size-1))*W, y+(j_img/(size-1))*H,  0 ), QVector2D(1.0f/3*texture, 0.0f)};  // v0
-        vertices[i+1] = {QVector3D( x+((i_img+1)/(size-1))*W , y+(j_img/(size-1))*H,  0 ), QVector2D(1.0f/3*(texture+1), 0.0f)}; // v1
-        vertices[i+2] = {QVector3D( x+(i_img/(size-1))*W, y+((j_img+1)/(size-1))*H ,  0 ), QVector2D(1.0f/3*texture, 1.0f)};  // v2
-        vertices[i+3] = {QVector3D( x+((i_img+1)/(size-1))*W  , y+((j_img+1)/(size-1))*H ,  0 ), QVector2D(1.0f/3*(texture+1), 1.0f)}; // v3
+        vertices[i] =   {QVector3D( x+(i_img/(gridSize-1))*size, y+(j_img/(gridSize-1))*size,  0 ), QVector2D(1.0f/3*texture, 0.0f)};  // v0
+        vertices[i+1] = {QVector3D( x+((i_img+1)/(gridSize-1))*size , y+(j_img/(gridSize-1))*size,  0 ), QVector2D(1.0f/3*(texture+1), 0.0f)}; // v1
+        vertices[i+2] = {QVector3D( x+(i_img/(gridSize-1))*size, y+((j_img+1)/(gridSize-1))*size ,  0 ), QVector2D(1.0f/3*texture, 1.0f)};  // v2
+        vertices[i+3] = {QVector3D( x+((i_img+1)/(gridSize-1))*size  , y+((j_img+1)/(gridSize-1))*size ,  0 ), QVector2D(1.0f/3*(texture+1), 1.0f)}; // v3
 
 
         indices[i_indices] = i;
@@ -132,11 +132,11 @@ void GeometryEngine::initPlaneGeometry(int size, float W, float H)
 //! [1]
     // Transfer vertex data to VBO 0
     arrayBuf.bind();
-    arrayBuf.allocate(vertices, size*size*4 * sizeof(VertexData));
+    arrayBuf.allocate(vertices, gridSize*gridSize*4 * sizeof(VertexData));
 
     // Transfer index data to VBO 1
     indexBuf.bind();
-    indexBuf.allocate(indices, size*size*6 * sizeof(GLushort));
+    indexBuf.allocate(indices, gridSize*gridSize*6 * sizeof(GLushort));
 //! [1]
 }
 

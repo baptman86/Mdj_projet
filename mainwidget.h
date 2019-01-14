@@ -69,8 +69,11 @@
 #include <mutex>
 #include <condition_variable>*/
 #include <QSet>
-#include <objloader.h>
-#include <filesystem>
+#include <QTime>
+#include <QOpenGLTexture>
+#include "object.h"
+#include "character.h"
+#include "mapgrid.h"
 
 using namespace std;
 
@@ -81,20 +84,24 @@ class MainWidget : public QOpenGLWidget, protected QOpenGLFunctions
     Q_OBJECT
 
 public:
-    explicit MainWidget(int fps=60,std::string img_texture = "NB",QWidget *parent = 0);
+    explicit MainWidget(int fps=60,unsigned int gridSize = 8, float size=0.5f, QWidget *parent = 0);
     ~MainWidget();
+
+    void addObject(string objFileName);
+
     int fps;
     QQuaternion rotation;
     QQuaternion init_rotation;
     qreal target_angle = 0;
     qreal angle = 0;
+    MapGrid grid;
 
 protected:
     void mousePressEvent(QMouseEvent *e) override;
     //void mouseReleaseEvent(QMouseEvent *e) override;
-    void MainWidget::keyPressEvent(QKeyEvent *e) override;
-    void MainWidget::keyReleaseEvent(QKeyEvent *e) override;
-    void MainWidget::wheelEvent(QWheelEvent *event) override;
+    void keyPressEvent(QKeyEvent *e) override;
+    void keyReleaseEvent(QKeyEvent *e) override;
+    void wheelEvent(QWheelEvent *event) override;
     void timerEvent(QTimerEvent *e) override;
     void rotation_handler();
     void move_handler();
@@ -106,24 +113,38 @@ protected:
     void initShaders();
     void initTextures();
 
+    float size;
+
+
+    QVector3D CharacterPosition;
+    size_t fps_count; // frames per second
+    size_t frames_count;
+    size_t ups_count; // updates per second
+    size_t updates_count;
+
+    size_t gridSize;
+
+    QTime time;
+
 private:
-    std::string img_texture;
 
     QBasicTimer timer;
     QOpenGLShaderProgram program;
+    QOpenGLShaderProgram programMesh;
     GeometryEngine *geometries;
 
     QOpenGLTexture *texture;
+    QOpenGLTexture *textureCharacter;
 
     QMatrix4x4 projection;
     QMatrix4x4 modelView;
+
+    vector<Object> Objects;
 
     QVector2D mousePressPosition;
     QVector3D rotationAxis;
     qreal angularSpeed = 0;
     qreal angularSpeedDefaultValue = 3;
-
-    //Qt3D::ObjLoader objloader;
 
 };
 

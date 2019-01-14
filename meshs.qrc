@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Crash.obj</file>
+        <file>sphere.obj</file>
+        <file>soldierRifle.obj</file>
+    </qresource>
+</RCC>
