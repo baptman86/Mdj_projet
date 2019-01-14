@@ -99,20 +99,11 @@ float* MapGrid::toWeights(){
     return weigths;
 }
 
-vector<gridData> MapGrid::findPath(int xStart,int yStart,int xEnd,int yEnd){
-    vector<pair<int,int>> paires;
+bool MapGrid::findPath(int xStart,int yStart,int xEnd,int yEnd, vector<pair<int,int> >* path){
     const int xSize = this->data.size();
     const int ySize = this->data[0].size();
 
-    if(!Node::astar(this->toWeights(),xSize,ySize,xSize*xStart+yStart,xEnd*xSize+yEnd,paires)){
-        //Problème
-    }
-
-    vector<gridData> path;
-    for(pair<int,int> p : paires){
-        path.push_back(this->data[p.first][p.second]);
-    }
-    return path;
+    return Node::astar(this->toWeights(),xSize,ySize,xSize*xStart+yStart,xEnd*xSize+yEnd,path);
 }
 
 bool MapGrid:: isInLosAndRange( float x1, float y1, float x2, float y2, int r )

@@ -21,7 +21,6 @@ protected:
 
     Weapon* weapon;
 
-
 };
 
 #endif // CHARACTER_H

@@ -64,11 +64,11 @@ int main(int argc, char *argv[])
     format.setDepthBufferSize(24);
     QSurfaceFormat::setDefaultFormat(format);
 
-    app.setApplicationName("OpenGl_intro_LEMOINE");
+    app.setApplicationName("Cube Tactical");
     app.setApplicationVersion("0.1");
 
 #ifndef QT_NO_OPENGL
-    MainWidget widget(time(NULL),60,12);
+    MainWidget widget(time(NULL),60,12,1.0f);
     widget.grid.addCharacter(new Character("soldierRifle.obj","soldierRifleTexture.jpg",5,5,0),3,3);
     //widget.grid.addCharacter(new Character("soldierRifle.obj","soldierRifleTexture.jpg",5,5,0),1,3);
     //widget.grid.addCharacter(new Character("soldierRifle.obj","soldierRifleTexture.jpg",5,5,1),5,7);

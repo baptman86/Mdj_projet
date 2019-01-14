@@ -3,7 +3,6 @@
 #include <vector>
 #include "astar.h"
 #include "object.h"
-#include <iostream>
 
 enum GroundType { plante, boue, roche, end };
 enum SurbrType { rien, brillant };
@@ -34,7 +33,7 @@ public:
     bool setObject(int id, int x, int y);
 
     bool isInLosAndRange( const float x1, const float y1, const float x2, const float y2, int r);
-    vector<gridData> findPath(int xStart,int yStart,int xEnd,int yEnd);
+    bool findPath(int xStart,int yStart,int xEnd,int yEnd, vector<pair<int,int> >* path);
 
     vector<Object*> objects;
     vector<int> charactersId;

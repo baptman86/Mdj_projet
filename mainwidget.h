@@ -76,6 +76,7 @@
 #include "obstacle.h"
 #include "mapgrid.h"
 
+
 using namespace std;
 
 class GeometryEngine;
@@ -118,8 +119,9 @@ protected:
 
     pair<int,int> cursorCoord;
 
-    Mesh cursor;
+    pair<int,int> selected;
 
+    Mesh cursor;
 
     QVector3D CharacterPosition;
     size_t fps_count; // frames per second

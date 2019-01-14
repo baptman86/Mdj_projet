@@ -5,6 +5,9 @@
 #include <limits>
 #include <cmath>
 #include <vector>
+#include <iostream>
+
+using namespace std;
 
 // represents a case
 class Node {
@@ -44,7 +47,7 @@ static float l1_norm(int i0, int j0, int i1, int j1) {
 static bool astar(
       const float* weights, const int h, const int w,
       const int start, const int goal,
-      std::vector< std::pair< int,int>> paires) {
+      std::vector< std::pair< int,int>>* paires) {
 
   const float INF = std::numeric_limits<float>::infinity();
 
@@ -103,7 +106,7 @@ static bool astar(
 
           costs[nbrs[i]] = new_cost;
           //paths[nbrs[i]] = cur.idx;
-          paires.push_back(std::make_pair(row,col));
+          paires->push_back(std::make_pair(row,col));
         }
       }
     }

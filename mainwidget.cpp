@@ -57,7 +57,8 @@ MainWidget::MainWidget(int randseed, int fps,unsigned int gridSize, float size, 
     fps(fps),
     grid(MapGrid(gridSize,randseed)),
     size(size),
-    cursorCoord(make_pair(gridSize/2,gridSize/2))
+    cursorCoord(make_pair(gridSize/2,gridSize/2)),
+    selected(make_pair(-1,-1))
 {
     srand (randseed);
 }
@@ -98,6 +99,27 @@ void MainWidget::keyPressEvent(QKeyEvent *e){
     if(e->key()==Qt::Key_Left){
         cursorCoord.first--;
     }
+    if(e->key()==Qt::Key_Enter-1){
+        if(selected.first==-1 || selected.second==-1){
+            selected = cursorCoord;
+        }
+        else{
+            vector<pair<int,int> > path;
+            if(grid.findPath(selected.first,selected.second,cursorCoord.first,cursorCoord.second,&path)){
+                cout << path.size() << endl;
+                for(pair<int,int> p : path){
+                    cout << p.first << " : " << p.second << endl;
+                }
+            }
+            else{
+                cout << "pas de chemin" << endl;
+            }
+        }
+    }
+    if(e->key()==Qt::Key_Escape){
+        selected.first=-1;
+        selected.second=-1;
+    }
     update();
 }
 
@@ -133,7 +155,7 @@ void MainWidget::mousePressEvent(QMouseEvent *e)
 
 void MainWidget::rotation_handler(){
     // Decrease angular speed (friction)
-    QVector3D n = QVector3D(0.0, 0, 1.0f).normalized();
+    QVector3D n = QVector3D(0.0, 1.0f, 1.0f).normalized();
     // Update rotation
     if(target_angle<angle){
         angularSpeed=angularSpeedDefaultValue;
@@ -156,10 +178,10 @@ void MainWidget::move_handler(){
     float s = sqrt(2);
 
     if(key_pressed.contains(Qt::Key_Z)){
-        projection.translate(QVector3D(0,-cameraSpeed,0));
+        projection.translate(QVector3D(0,-cameraSpeed/s,cameraSpeed/s));
     }
     if(key_pressed.contains(Qt::Key_S)){
-        projection.translate(QVector3D(0,cameraSpeed,0));
+        projection.translate(QVector3D(0,cameraSpeed/s,-cameraSpeed/s));
     }
     if(key_pressed.contains(Qt::Key_D)){
         projection.translate(QVector3D(-cameraSpeed,0,0));
@@ -201,7 +223,7 @@ void MainWidget::initializeGL()
     glEnable(GL_CULL_FACE);
 //! [2]
 
-    geometries = new GeometryEngine(&grid,0.5f);
+    geometries = new GeometryEngine(&grid,size);
 
     for(int i=0;i<grid.objects.size();i++){
         if(!grid.objects[i]->mesh.loadFromObjFile(QString::fromStdString(string(":/").append(grid.objects[i]->ObjFileName)))){
@@ -298,6 +320,7 @@ void MainWidget::resizeGL(int w, int h)
     projection.setToIdentity();
 
     QVector3D eye = QVector3D(1.0, 0.0, 0.0);
+    init_rotation = QQuaternion::fromAxisAndAngle(eye, -45.0f);
     rotation = init_rotation;
 
     // Set perspective projection
