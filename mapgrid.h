@@ -5,7 +5,7 @@
 #include "object.h"
 #include <iostream>
 
-enum GroundType { plante, boue, roche };
+enum GroundType { plante, boue, roche, end };
 enum SurbrType { rien, brillant };
 
 typedef struct gridData{
@@ -44,7 +44,9 @@ protected:
     int size;
     vector<vector<gridData> > data;
 
-
+    GroundType randomGround() {
+        return static_cast<GroundType>(rand() % GroundType::end);
+    }
     float* toWeights();
 
     vector<pair<int,int>> toGridCoordinates(int* paths);

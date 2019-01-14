@@ -41,7 +41,7 @@ static float l1_norm(int i0, int j0, int i1, int j1) {
 // start, goal:    index of start/goal in flattened grid
 // diag_ok:        if true, allows diagonal moves (8-conn.)
 // paths (output): for each node, stores previous node in path
-static bool Node::astar(
+static bool astar(
       const float* weights, const int h, const int w,
       const int start, const int goal,
       std::vector< std::pair< int,int>> paires) {

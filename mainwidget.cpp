@@ -79,12 +79,12 @@ void MainWidget::keyPressEvent(QKeyEvent *e){
 
     key_pressed << (Qt::Key)e->key();
 
-    if(e->key()==Qt::Key_A){
+    /*if(e->key()==Qt::Key_A){
         target_angle-=45.0;
     }
     if(e->key()==Qt::Key_E){
         target_angle+=45.0;
-    }
+    }*/
 
     if(e->key()==Qt::Key_Up){
         cursorCoord.second++;
@@ -133,7 +133,7 @@ void MainWidget::mousePressEvent(QMouseEvent *e)
 
 void MainWidget::rotation_handler(){
     // Decrease angular speed (friction)
-    QVector3D n = QVector3D(0.0, 1.0f, 1.0f).normalized();
+    QVector3D n = QVector3D(0.0, 0, 1.0f).normalized();
     // Update rotation
     if(target_angle<angle){
         angularSpeed=angularSpeedDefaultValue;
@@ -156,10 +156,10 @@ void MainWidget::move_handler(){
     float s = sqrt(2);
 
     if(key_pressed.contains(Qt::Key_Z)){
-        projection.translate(QVector3D(0,-cameraSpeed/s,cameraSpeed/s));
+        projection.translate(QVector3D(0,-cameraSpeed,0));
     }
     if(key_pressed.contains(Qt::Key_S)){
-        projection.translate(QVector3D(0,cameraSpeed/s,-cameraSpeed/s));
+        projection.translate(QVector3D(0,cameraSpeed,0));
     }
     if(key_pressed.contains(Qt::Key_D)){
         projection.translate(QVector3D(-cameraSpeed,0,0));
@@ -298,7 +298,6 @@ void MainWidget::resizeGL(int w, int h)
     projection.setToIdentity();
 
     QVector3D eye = QVector3D(1.0, 0.0, 0.0);
-    init_rotation = QQuaternion::fromAxisAndAngle(eye, -45.0f);
     rotation = init_rotation;
 
     // Set perspective projection
@@ -423,7 +422,7 @@ void MainWidget::paintGL()
         matrix.setToIdentity();
         matrix.translate(0,0,-1);
         matrix.rotate(rotation);
-        matrix.translate(0.0f,-0.15f/gridSize*size,0);
+        matrix.translate(0.0f,-0.3f/gridSize*size,0);
 
 
         matrix.translate((size/(gridSize-1)*grid.objects[id]->getCoord().first+size/(gridSize-1)*(grid.objects[id]->getCoord().first+1))/2-size/2,(size/(gridSize-1)*grid.objects[id]->getCoord().second+size/(gridSize-1)*(grid.objects[id]->getCoord().second+1))/2-size/2,0.025f);

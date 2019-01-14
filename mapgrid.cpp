@@ -7,7 +7,15 @@ MapGrid::MapGrid(unsigned int size,int randseed)
     for(int i=0;i<size;i++){
         this->data.push_back(vector<gridData> (size));
     }
-    std::vector<std::vector<gridData> > fog(size,std::vector<gridData>(size, {0,GroundType::plante,SurbrType::rien}));
+
+    std::vector<std::vector<gridData> > fog(size,std::vector<gridData>(size));
+
+    for(int i=0;i<size;i++){
+        for(int j=0;j<size;j++){
+            fog[i][j]={0,randomGround(),SurbrType::rien};
+        }
+    }
+
     this->data=fog;
 }
 
