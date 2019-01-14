@@ -1,6 +1,7 @@
 #include "mapgrid.h"
+#include "character.h"
 
-MapGrid::MapGrid(unsigned int size)
+MapGrid::MapGrid(unsigned int size,int randseed)
 {
     this->size=size;
     for(int i=0;i<size;i++){
@@ -19,19 +20,40 @@ unsigned int MapGrid::getSize(){
 }
 
 
-bool MapGrid::addObject(Object o){
-    return this->addObject(o,-1,-1);
+bool MapGrid::addObstacle(Object* o){
+    return this->addObstacle(o,-1,-1);
 }
 
 
-bool MapGrid::addObject(Object o, int x, int y){
+bool MapGrid::addObstacle(Object* o, int x, int y){
     if(x>=0 && y>=0 && x < size && y < size){
         if(this->data[x][y].ObjId<=0){
             int id = this->objects.size();
             this->objects.push_back(o);
 
-            this->objects[id].setCoord(x,y);
+            this->objects[id]->setCoord(x,y);
             this->data[x][y].ObjId=id;
+            this->obstaclesId.push_back(id);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool MapGrid::addCharacter(Object* o){
+    return this->addCharacter(o,-1,-1);
+}
+
+
+bool MapGrid::addCharacter(Object* o, int x, int y){
+    if(x>=0 && y>=0 && x < size && y < size){
+        if(this->data[x][y].ObjId<=0){
+            int id = this->objects.size();
+            this->objects.push_back(o);
+
+            this->objects[id]->setCoord(x,y);
+            this->data[x][y].ObjId=id;
+            this->charactersId.push_back(id);
             return true;
         }
     }
@@ -42,7 +64,7 @@ bool MapGrid::setObject(int id, int x, int y){
     if(x>=0 && y>=0 && x < size && y < size){
         if(this->data[x][y].ObjId<=0){
 
-            this->objects[id].setCoord(x,y);
+            this->objects[id]->setCoord(x,y);
             this->data[x][y].ObjId=id;
             return true;
         }

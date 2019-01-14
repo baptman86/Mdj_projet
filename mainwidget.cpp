@@ -52,13 +52,14 @@
 
 using namespace std;
 
-MainWidget::MainWidget(int fps,unsigned int gridSize, float size, QWidget *parent) :
+MainWidget::MainWidget(int randseed, int fps,unsigned int gridSize, float size, QWidget *parent) :
     QOpenGLWidget(parent),
     fps(fps),
-    grid(MapGrid(gridSize)),
+    grid(MapGrid(gridSize,randseed)),
     size(size),
     cursorCoord(make_pair(gridSize/2,gridSize/2))
 {
+    srand (randseed);
 }
 
 MainWidget::~MainWidget()
@@ -72,27 +73,6 @@ MainWidget::~MainWidget()
 }
 
 
-/*mutex mtx;
-condition_variable cv;
-bool ready = true;
-int current = 0;
-
-void rotate(MainWidget* mw,int num, float angle,int milliSecondTime)
-{
-    current++;
-    std::unique_lock<std::mutex> lck(mtx);
-    while(!ready){ cv.wait(lck); }
-    cout << mw->fps << endl;
-    //mw->angularSpeed = angle/milliSecondTime*mw->fps;
-    QVector3D n = QVector3D(0.0, 1.0, 1.0).normalized();
-    mw->rotation = QQuaternion::fromAxisAndAngle(n, angle) * mw->rotation;
-    cout << mw->rotation.x() << " : " << mw->rotation.y() << " : "<< mw->rotation.z() << endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(milliSecondTime));
-    //mw->angularSpeed=0;
-    cv.notify_all();
-}*/
-
-
 QSet<Qt::Key> key_pressed;
 
 void MainWidget::keyPressEvent(QKeyEvent *e){
@@ -100,34 +80,22 @@ void MainWidget::keyPressEvent(QKeyEvent *e){
     key_pressed << (Qt::Key)e->key();
 
     if(e->key()==Qt::Key_A){
-        /*std::thread t1([this]() { rotate(this, current, 45.0f); });
-        t1.detach();*/
         target_angle-=45.0;
     }
     if(e->key()==Qt::Key_E){
-        /*std::thread t1([this]() { rotate(this, current, -45.0f); });
-        t1.detach();*/
         target_angle+=45.0;
     }
 
     if(e->key()==Qt::Key_Up){
-        /*std::thread t1([this]() { rotate(this, current, -45.0f); });
-        t1.detach();*/
         cursorCoord.second++;
     }
     if(e->key()==Qt::Key_Down){
-        /*std::thread t1([this]() { rotate(this, current, -45.0f); });
-        t1.detach();*/
         cursorCoord.second--;
     }
     if(e->key()==Qt::Key_Right){
-        /*std::thread t1([this]() { rotate(this, current, -45.0f); });
-        t1.detach();*/
         cursorCoord.first++;
     }
     if(e->key()==Qt::Key_Left){
-        /*std::thread t1([this]() { rotate(this, current, -45.0f); });
-        t1.detach();*/
         cursorCoord.first--;
     }
     update();
@@ -233,10 +201,10 @@ void MainWidget::initializeGL()
     glEnable(GL_CULL_FACE);
 //! [2]
 
-    geometries = new GeometryEngine(grid.getSize(),0.5f);
+    geometries = new GeometryEngine(&grid,0.5f);
 
     for(int i=0;i<grid.objects.size();i++){
-        if(!grid.objects[i].mesh.loadFromObjFile(QString::fromStdString(string(":/").append(grid.objects[i].ObjFileName)))){
+        if(!grid.objects[i]->mesh.loadFromObjFile(QString::fromStdString(string(":/").append(grid.objects[i]->ObjFileName)))){
             std::cerr<<"Unable to load the .obj file"<<std::endl;
         }
     }
@@ -307,11 +275,11 @@ void MainWidget::initTextures()
     texture->setWrapMode(QOpenGLTexture::Repeat);
     for(int i=0;i<grid.objects.size();i++){
 
-        grid.objects[i].mesh.texture=new QOpenGLTexture(QImage(QString::fromStdString(string(":/").append(grid.objects[i].TextureFileName))).mirrored());
+        grid.objects[i]->mesh.texture=new QOpenGLTexture(QImage(QString::fromStdString(string(":/").append(grid.objects[i]->TextureFileName))).mirrored());
 
-        grid.objects[i].mesh.texture->setMinificationFilter(QOpenGLTexture::Nearest);
-        grid.objects[i].mesh.texture->setMagnificationFilter(QOpenGLTexture::Linear);
-        grid.objects[i].mesh.texture->setWrapMode(QOpenGLTexture::Repeat);
+        grid.objects[i]->mesh.texture->setMinificationFilter(QOpenGLTexture::Nearest);
+        grid.objects[i]->mesh.texture->setMagnificationFilter(QOpenGLTexture::Linear);
+        grid.objects[i]->mesh.texture->setWrapMode(QOpenGLTexture::Repeat);
     }
 
 }
@@ -421,24 +389,53 @@ void MainWidget::paintGL()
     programMesh.setUniformValue("enable_texture", true);
 
 
+    for(int id : grid.charactersId){
 
-
-
-    for(int i=0;i<grid.objects.size();i++){
         matrix.setToIdentity();
         matrix.translate(0,0,-1);
         matrix.rotate(rotation);
-        matrix.translate(0.0f,-0.15f/gridSize*size,0.0f);
 
 
-        matrix.translate((size/(gridSize-1)*grid.objects[i].getCoord().first+size/(gridSize-1)*(grid.objects[i].getCoord().first+1))/2-size/2,(size/(gridSize-1)*grid.objects[i].getCoord().second+size/(gridSize-1)*(grid.objects[i].getCoord().second+1))/2-size/2,0);
+        matrix.translate((size/(gridSize-1)*grid.objects[id]->getCoord().first+size/(gridSize-1)*(grid.objects[id]->getCoord().first+1))/2-size/2,(size/(gridSize-1)*grid.objects[id]->getCoord().second+size/(gridSize-1)*(grid.objects[id]->getCoord().second+1))/2-size/2,0);
+
+
+        if(((Character*) grid.objects[id])->getTeam()==0){
+            programMesh.setUniformValue("color", QVector4D(1,0,0,1));
+            matrix.translate(0.0f,0.15f/gridSize*size,0.0f);
+            matrix.rotate(QQuaternion::fromAxisAndAngle(QVector3D(0,0,1),-180));
+        }
+        else{
+            matrix.translate(0.0f,-0.15f/gridSize*size,0.0f);
+            programMesh.setUniformValue("color", QVector4D(0,0,1,1));
+        }
+
         matrix.scale(scaling);
-
-
-        grid.objects[i].mesh.texture->bind();
+        grid.objects[id]->mesh.texture->bind();
         // Set modelview-projection matrix
         programMesh.setUniformValue("m_matrix", matrix);
 
-        grid.objects[i].mesh.draw(&programMesh);
+        grid.objects[id]->mesh.draw(&programMesh);
+    }
+
+    programMesh.setUniformValue("color", QVector4D(0,0,0,1));
+
+    for(int id : grid.obstaclesId){
+        matrix.setToIdentity();
+        matrix.translate(0,0,-1);
+        matrix.rotate(rotation);
+        matrix.translate(0.0f,-0.15f/gridSize*size,0);
+
+
+        matrix.translate((size/(gridSize-1)*grid.objects[id]->getCoord().first+size/(gridSize-1)*(grid.objects[id]->getCoord().first+1))/2-size/2,(size/(gridSize-1)*grid.objects[id]->getCoord().second+size/(gridSize-1)*(grid.objects[id]->getCoord().second+1))/2-size/2,0.025f);
+
+        matrix.rotate(QQuaternion::fromAxisAndAngle(QVector3D(0,1,0),-90));
+        matrix.scale(scaling*1.1);
+
+
+        grid.objects[id]->mesh.texture->bind();
+        // Set modelview-projection matrix
+        programMesh.setUniformValue("m_matrix", matrix);
+
+        grid.objects[id]->mesh.draw(&programMesh);
     }
 }

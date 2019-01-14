@@ -18,8 +18,6 @@ public:
         return coord;
     }
 
-    void damage(int d, bool t);
-
 protected:
     pair<int,int> coord;
 };

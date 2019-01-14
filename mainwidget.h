@@ -73,6 +73,7 @@
 #include <QOpenGLTexture>
 #include "object.h"
 #include "character.h"
+#include "obstacle.h"
 #include "mapgrid.h"
 
 using namespace std;
@@ -84,7 +85,7 @@ class MainWidget : public QOpenGLWidget, protected QOpenGLFunctions
     Q_OBJECT
 
 public:
-    explicit MainWidget(int fps=60,unsigned int gridSize = 8, float size=0.5f, QWidget *parent = 0);
+    explicit MainWidget(int randseed, int fps=60,unsigned int gridSize = 8, float size=0.5f, QWidget *parent = 0);
     ~MainWidget();
 
     void addObject(string objFileName);
@@ -143,7 +144,7 @@ private:
     QMatrix4x4 projection;
     QMatrix4x4 modelView;
 
-    vector<Object> Objects;
+    vector<Character> Objects;
 
     QVector2D mousePressPosition;
     QVector3D rotationAxis;

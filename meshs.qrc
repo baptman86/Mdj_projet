@@ -4,5 +4,6 @@
         <file>sphere.obj</file>
         <file>soldierRifle.obj</file>
         <file>selector.obj</file>
+        <file>rockLarge.obj</file>
     </qresource>
 </RCC>

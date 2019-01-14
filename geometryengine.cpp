@@ -56,6 +56,7 @@
 #include <QImage>
 #include <QColor>
 #include <sstream>
+#include <iostream>
 
 
 struct VertexData
@@ -65,7 +66,7 @@ struct VertexData
 };
 
 //! [0]
-GeometryEngine::GeometryEngine(int gridSize,float size)
+GeometryEngine::GeometryEngine(MapGrid* mapGrid,float size)
     : indexBuf(QOpenGLBuffer::IndexBuffer)
 {
     initializeOpenGLFunctions();
@@ -74,9 +75,12 @@ GeometryEngine::GeometryEngine(int gridSize,float size)
     arrayBuf.create();
     indexBuf.create();
 
+    this->mapGrid = mapGrid;
+
     // Initializes plane geometry and transfers it to VBOs
-    Hmap.load(":/cube.png");
-    initPlaneGeometry(gridSize,size);
+    initPlaneGeometry(size);
+
+
 }
 
 GeometryEngine::~GeometryEngine()
@@ -88,16 +92,16 @@ GeometryEngine::~GeometryEngine()
 
 
 //init data of a plane with size² vertex, starting from point (x,y), height of h et width of w. create a randomized z component for each vertices between 0 and z_max. texture_x and texture_y are exclusives of cube.png and give starting point to get texture from this file.
-void GeometryEngine::initPlaneGeometry(int gridSize, float size)
+void GeometryEngine::initPlaneGeometry(float size)
 {
     // For cube we would need only 8 vertices but we have to
     // duplicate vertex for each face because texture coordinate
     // is different.
+    int gridSize = mapGrid->getSize();
 
     float x = -size/2, y = -size/2;
     int i_indices = 0;
-    float i_img, j_img, z;
-    float H_min = 0.0f, H_max = 1.0f;
+    float i_img, j_img;
 
     VertexData *vertices = new VertexData[gridSize*gridSize*4];
     GLushort *indices = new GLushort[gridSize*gridSize*6];
@@ -107,9 +111,22 @@ void GeometryEngine::initPlaneGeometry(int gridSize, float size)
         i_img = ((float) ( (i/4) % gridSize ) );
         j_img = ((float) ( (i/4) / gridSize ) );
 
-        //random formula : ( (float) rand()/RAND_MAX)*(H_max-H_min) + H_min
+        int texture;
 
-        int texture = rand()%3;
+        switch (mapGrid->getData()[i_img][j_img].GroundType) {
+            case plante :
+                texture = 1;
+                break;
+            case boue :
+                texture = 2;
+                break;
+            case roche :
+                texture = 0;
+                break;
+            default :
+                texture = 1;
+                break;
+        }
 
         vertices[i] =   {QVector3D( x+(i_img/(gridSize-1))*size, y+(j_img/(gridSize-1))*size,  0 ), QVector2D(1.0f/3*texture, 0.0f)};  // v0
         vertices[i+1] = {QVector3D( x+((i_img+1)/(gridSize-1))*size , y+(j_img/(gridSize-1))*size,  0 ), QVector2D(1.0f/3*(texture+1), 0.0f)}; // v1

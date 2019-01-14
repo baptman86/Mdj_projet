@@ -8,14 +8,20 @@ class Character : public Object
 {
 public:
     Character(string ObjFileName, string TextureFileName, int m, int h, int team);
+    void damage(int d, bool t);
+
+    int getTeam(){
+        return team;
+    }
 
 protected:
     int movement;
     int hp;
+    int team;
 
     Weapon* weapon;
 
-    void damage(int d, bool t);
+
 };
 
 #endif // CHARACTER_H

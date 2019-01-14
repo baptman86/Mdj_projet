@@ -14,7 +14,7 @@ typedef struct {
     QVector3D position;
     QVector2D textCoord;
     QVector3D normal;
-}VertexData;
+}MeshVertexData;
 
 class Mesh
 {

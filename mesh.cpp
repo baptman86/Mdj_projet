@@ -31,7 +31,7 @@ bool Mesh::loadFromObjFile(QString filename)
     }
 
     auto start = std::chrono::high_resolution_clock::now();
-    std::vector<VertexData> vertices;
+    std::vector<MeshVertexData> vertices;
 
     std::string line;
     std::cout << "Trying to open file: " << filename.toStdString() << std::endl;
@@ -144,7 +144,7 @@ bool Mesh::loadFromObjFile(QString filename)
         }
     }
 
-    VBO.allocate(vertices.data(), vertices.size() * sizeof(VertexData));
+    VBO.allocate(vertices.data(), vertices.size() * sizeof(MeshVertexData));
 
     delete[] verticesData;
     delete[] normalsData;
@@ -167,16 +167,16 @@ void Mesh::draw(QOpenGLShaderProgram* program)
     // Tell OpenGL programmable pipeline how to locate vertex position data
     int vertexLocation = program->attributeLocation("a_position");
     program->enableAttributeArray(vertexLocation);
-    program->setAttributeBuffer(vertexLocation, GL_FLOAT, 0, 3, sizeof(VertexData));
+    program->setAttributeBuffer(vertexLocation, GL_FLOAT, 0, 3, sizeof(MeshVertexData));
 
     // Tell OpenGL programmable pipeline how to locate vertex texture coordinate data
     int texcoordLocation = program->attributeLocation("a_texcoord");
     program->enableAttributeArray(texcoordLocation);
-    program->setAttributeBuffer(texcoordLocation, GL_FLOAT, sizeof(QVector3D), 2, sizeof(VertexData));
+    program->setAttributeBuffer(texcoordLocation, GL_FLOAT, sizeof(QVector3D), 2, sizeof(MeshVertexData));
 
     int normalLocation = program->attributeLocation("a_normal");
     program->enableAttributeArray(normalLocation);
-    program->setAttributeBuffer(normalLocation, GL_FLOAT, sizeof(QVector3D) + sizeof(QVector2D), 3, sizeof(VertexData));
+    program->setAttributeBuffer(normalLocation, GL_FLOAT, sizeof(QVector3D) + sizeof(QVector2D), 3, sizeof(MeshVertexData));
 
     if(texture != nullptr)
     {

@@ -56,11 +56,12 @@
 #include <QOpenGLBuffer>
 #include <QImage>
 #include <QRgb>
+#include "mapgrid.h"
 
 class GeometryEngine : protected QOpenGLFunctions
 {
 public:
-    GeometryEngine(int gridSize, float size);
+    GeometryEngine(MapGrid* mapGrid, float size);
     virtual ~GeometryEngine();
 
     int indexCount;
@@ -70,11 +71,11 @@ public:
 
 private:
     void initCubeGeometry();
-    void initPlaneGeometry(int gridSize, float size);
+    void initPlaneGeometry(float size);
 
     QOpenGLBuffer arrayBuf;
     QOpenGLBuffer indexBuf;
-    QImage Hmap;
+    MapGrid* mapGrid;
 };
 
 #endif // GEOMETRYENGINE_H

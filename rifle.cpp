@@ -14,7 +14,7 @@ void Rifle::shoot(MapGrid grid, int x, int y){
         int objId = grid.getData()[x][y].ObjId;
 
         if(!objId<0){
-            grid.objects[objId].damage(this->damage,this->terraformer);
+            ((Character*)grid.objects[objId])->damage(this->damage,this->terraformer);
         }
     }
 }
