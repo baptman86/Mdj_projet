@@ -65,7 +65,7 @@ MainWidget::MainWidget(int randseed, int fps,unsigned int gridSize, float size, 
 {
     srand (randseed);
     AI *ai = new AI(this->grid);
-    this->ai=*ai;
+    this->ai=ai;
 }
 
 MainWidget::~MainWidget()
@@ -529,13 +529,17 @@ void MainWidget::makeCharacterMove(int i, pair<int,int> target){
 
 void MainWidget::startTurn(){
     //si l'équipe est gérée par une IA, fait agir
+    string msg = "Le tour de l'equipe ";
+    msg.append(to_string(this->teamTurn));
+    msg.append(" commence.");
+    cout << msg;
     if(this->teamTurn!=0){
-        for(int id : this->ai.characterIds){
+        for(int id : this->ai->characterIds){
             Object *obj = grid.objects[id];
             Character *chara = static_cast <Character *>(obj);
-            this->ai.currentCharacter=id;
+            this->ai->currentCharacter=id;
 
-            pair <string, pair<int,int> > aiAnswer = this->ai.act(grid,*chara);
+            pair <string, pair<int,int> > aiAnswer = this->ai->act(grid,*chara);
             if(aiAnswer.first=="ACTION_SHOOT"){
                 this->makeCharacterShoot(id,aiAnswer.second);
             } else {

@@ -109,7 +109,7 @@ public:
     int selectedObjId;
 
 
-    AI ai;
+    AI* ai;
     int turn;
 
     int getTurn(){
