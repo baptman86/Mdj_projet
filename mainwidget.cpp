@@ -460,7 +460,17 @@ bool MainWidget::areAllActionsDone(){
 void MainWidget::makeCharacterShoot(int i, pair<int,int> target){
     Object *obj = this->grid.objects[i];
     Character *chara = static_cast <Character *>(obj);
-    //chara->shootWeapon(*this, target);
+
+
+    //récupère la cible
+    int idTarget = this->grid.getData()[target.first][target.second].ObjId;
+
+    Object *obj2 = this->grid.objects[idTarget];
+    Character *chara2 = static_cast <Character *>(obj2);
+
+
+    chara2->damage(chara->getWeapon()->getDamage(),chara->getWeapon()->isTerraformer());
+    cout << "tir reussi" ;
 
     chara->actionDone=true;
     this->areAllActionsDone();
