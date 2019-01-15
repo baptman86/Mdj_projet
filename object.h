@@ -20,6 +20,7 @@ public:
 
 protected:
     pair<int,int> coord;
+    int id;
 };
 
 #endif // OBJECT_H

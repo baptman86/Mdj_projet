@@ -1,7 +1,12 @@
 #include "mapgrid.h"
+#include "float.h"
 #include "character.h"
 
-MapGrid::MapGrid(unsigned int size,int randseed)
+
+//Essentiellement un game state
+
+
+MapGrid::MapGrid(unsigned int size,int randseed) : turn(1), teamTurn(1)
 {
     this->size=size;
     for(int i=0;i<size;i++){
@@ -307,4 +312,111 @@ vector<Node> MapGrid::makePath(vector<vector<Node> > map, Node dest) {
     catch(const exception& e){
         cout << e.what() << endl;
     }
+}
+
+bool MapGrid::isInLosAndRange( pair<int,int> begin, pair<int,int> end, int r ){
+    return(isInLosAndRange(begin.first,begin.second,end.first,end.second,r));
+}
+
+bool MapGrid::isInLosAndRange( float x1, float y1, float x2, float y2, int r )
+{
+    //check range avec la distance de Manhattan
+    if(fabs(x1-x2)+fabs(y1-y2) >r){
+        return false;
+    }
+
+        // Bresenham's line algorithm
+  const bool steep = (fabs(y2 - y1) > fabs(x2 - x1));
+  if(steep)
+  {
+    std::swap(x1, y1);
+    std::swap(x2, y2);
+  }
+
+  if(x1 > x2)
+  {
+    std::swap(x1, x2);
+    std::swap(y1, y2);
+  }
+
+  const float dx = x2 - x1;
+  const float dy = fabs(y2 - y1);
+
+  float error = dx / 2.0f;
+  const int ystep = (y1 < y2) ? 1 : -1;
+  int y = (int)y1;
+
+  const int maxX = (int)x2;
+
+  for(int x=(int)x1; x<maxX; x++)
+  {
+    if(steep)
+    {
+        if(this->data[y][x].ObjId!=0){
+            return false;
+        }
+        //SetPixel(y,x, color);
+    }
+    else
+    {
+        if(this->data[x][y].ObjId!=0){
+            return false;
+        }
+        //SetPixel(x,y, color);
+    }
+
+    error -= dy;
+    if(error < 0)
+    {
+        y += ystep;
+        error += dx;
+    }
+  }
+
+
+  return true;
+}
+
+
+bool MapGrid::areAllActionsDone(){
+    bool inter = true;
+    for(int id : this->charactersId){
+        Object *obj=this->objects[id];
+        Character *chara = static_cast <Character *>(obj);
+        if(this->teamTurn==chara->getTeam()&&chara->actionDone==false){
+            inter=false;
+        }
+    }
+
+    this->endTurn();
+    return inter;
+}
+
+void MapGrid::makeCharacterShoot(int i, pair<int,int> target){
+    Object *obj = this->objects[i];
+    Character *chara = static_cast <Character *>(obj);
+    //chara->shootWeapon(*this, target);
+
+    chara->actionDone=true;
+    this->areAllActionsDone();
+}
+void MapGrid::makeCharacterMove(int i, pair<int,int> target){
+
+}
+
+void MapGrid::startTurn(){
+    //si l'équipe est gérée par une IA
+    if(this->teamTurn!=0){
+        this->ai.actAll(this);
+    }
+}
+
+void MapGrid::endTurn(){
+    this->turn++;
+    if(this->teamTurn==0){
+        this->teamTurn=1;
+    } else {
+        this->teamTurn=0;
+    }
+    this->startTurn();
 }

@@ -1,3 +1,6 @@
+#pragma once
+//Necessaire a cause d'un bug de qt avec des inclusions circulaires meme avec les guards (ifndef)
+
 #ifndef GRID_H
 #define GRID_H
 
@@ -55,8 +58,33 @@ public:
     vector<int> charactersId;
     vector<int> obstaclesId;
 
+    bool isInLosAndRange( float x1, float y1, float x2, float y2, int r );
+    bool isInLosAndRange( pair<int,int> begin, pair<int,int> end, int r );
+
+    int getTurn(){
+        return this->turn;
+    }
+
+    void addTurn(){
+        this->turn++;
+    }
+
+    int teamTurn;
+
+    //Nombre de characters dans une team
+    bool areAllActionsDone();
+
+    void makeCharacterShoot(int i, pair<int,int> target);
+    void makeCharacterMove(int i, pair<int,int> target);
+
+    //demarre le tour de l'equipe numero t
+    void startTurn();
+    void endTurn();
+
 protected:
+
     int size;
+
     vector<vector<gridData> > data;
 
     GroundType randomGround() {
@@ -65,6 +93,9 @@ protected:
     float* toWeights();
 
     vector<pair<int,int>> toGridCoordinates(int* paths);
+
+
+    int turn;
 
 };
 

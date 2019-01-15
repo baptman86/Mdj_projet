@@ -56,6 +56,10 @@
 #include "mainwidget.h"
 #endif
 
+#include "dialog.h"
+#include "QGraphicsAnchorLayout"
+
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
@@ -73,7 +77,24 @@ int main(int argc, char *argv[])
     //widget.grid.addCharacter(new Character("soldierRifle.obj","soldierRifleTexture.jpg",5,5,0),1,3);
     //widget.grid.addCharacter(new Character("soldierRifle.obj","soldierRifleTexture.jpg",5,5,1),5,7);
     widget.grid.addObstacle(new Obstacle("rockLarge.obj","rockLargeTexture.png"),6,7);
+
+//    GLWidget glw(&widget);
+
+    Dialog *dialog = new Dialog(&widget);
+
+//    widget.layout()->addWidget(&widget);
+//    widget.layout()->addWidget(dialog);
+//    QGraphicsAnchorLayout *layout = new QAnchorLayout();
+//    widget.set(layout);
+
+//    widget.QGraphicsScene::addWidget(dialog);
+
+//    Ui::Dialog ui;
+//    ui.setupUi(widget);
+
     widget.show();
+
+    dialog->show();
 #else
     QLabel note("OpenGL Support required");
     note.show();

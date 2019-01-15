@@ -11,7 +11,9 @@ SOURCES += main.cpp \
     character.cpp \
     mapgrid.cpp \
     weapon.cpp \
-    rifle.cpp
+    rifle.cpp \
+    dialog.cpp \
+    ai.cpp
 
 SOURCES += \
     mainwidget.cpp \
@@ -27,7 +29,9 @@ HEADERS += \
     character.h \
     mapgrid.h \
     weapon.h \
-    rifle.h
+    rifle.h \
+    dialog.h \
+    ai.h
 
 RESOURCES += \
     shaders.qrc \
@@ -41,4 +45,9 @@ LIBS += \
 target.path = $$[QT_INSTALL_EXAMPLES]/opengl/cube
 INSTALLS += target
 
-DISTFILES +=
+DISTFILES += \
+    HudForm.ui.qml \
+    Hud.qml
+
+FORMS += \
+    dialog.ui

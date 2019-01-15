@@ -49,6 +49,7 @@
 ****************************************************************************/
 
 #include "mainwidget.h"
+#include "QGridLayout"
 
 using namespace std;
 
@@ -62,6 +63,8 @@ MainWidget::MainWidget(int randseed, int fps,unsigned int gridSize, float size, 
     selectedObjId(-1)
 {
     srand (randseed);
+//    this->setLayout(new QGridLayout);
+//    this->resizeGL(1024,768);
 }
 
 MainWidget::~MainWidget()
