@@ -465,7 +465,7 @@ void MainWidget::makeCharacterShoot(int i, pair<int,int> target){
     Character *chara = static_cast <Character *>(obj);
 
     if(chara->actionDone) {
-        cout << "Le personnage a deja agi ce tour";
+        cout << "Le personnage a deja agi ce tour" << endl;
     } else {
         //récupère la cible
         int idTarget = this->grid.getData()[target.first][target.second].ObjId;
@@ -483,7 +483,7 @@ void MainWidget::makeCharacterShoot(int i, pair<int,int> target){
             doneSomething = true;
 
         } else {
-            cout << "cible hors de vue ou trop loin";
+            cout << "cible hors de vue ou trop loin" << endl;
         }
 
         if(doneSomething){
@@ -499,7 +499,7 @@ void MainWidget::makeCharacterMove(int i, pair<int,int> target){
     Character *chara = static_cast <Character *>(obj);
 
     if(chara->actionDone) {
-        cout << "Le personnage a deja agi ce tour";
+        cout << "Le personnage a deja agi ce tour" << endl;
     } else {
 
         Node player;
@@ -529,10 +529,10 @@ void MainWidget::makeCharacterMove(int i, pair<int,int> target){
 
 void MainWidget::startTurn(){
     //si l'équipe est gérée par une IA, fait agir
-    string msg = "Le tour de l'equipe ";
+    string msg = "Le tour de l'equipe " ;
     msg.append(to_string(this->teamTurn));
     msg.append(" commence.");
-    cout << msg;
+    cout << msg  << endl;
     if(this->teamTurn!=0){
         for(int id : this->ai->characterIds){
             Object *obj = grid.objects[id];
