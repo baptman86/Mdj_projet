@@ -103,7 +103,9 @@ bool MapGrid::setObject(int id, int x, int y){
     return false;
 }
 
-
+bool MapGrid::isInLosAndRange( pair<int, int> begin, pair<int,int> end, int r ){
+    return this->isInLosAndRange(begin.first, begin.second, end.first, end.second, r);
+}
 
 bool MapGrid:: isInLosAndRange( float x1, float y1, float x2, float y2, int r )
 {
@@ -164,14 +166,7 @@ bool MapGrid:: isInLosAndRange( float x1, float y1, float x2, float y2, int r )
   return true;
 }
 
-bool MapGrid::isValid(int x, int y, int id) { //If our Node is an obstacle it is not valid
-    if (x < 0 || y < 0 || x >= size || y >= size) {
-        return false;
-    }
-    else{
-        return (data[x][y].ObjId < 0 || data[x][y].ObjId==id);
-    }
-}
+
 
 bool isDestination(int x, int y, Node dest) {
     if (x == dest.x && y == dest.y) {
@@ -186,9 +181,18 @@ double calculateH(int x, int y, Node dest) {
     return H;
 }
 
-vector<Node> MapGrid::aStar(Node player, Node dest, int id) {
+bool MapGrid::isValid(int x, int y, int id, int targetId) { //If our Node is an obstacle it is not valid
+    if (x < 0 || y < 0 || x >= size || y >= size) {
+        return false;
+    }
+    else{
+        return (data[x][y].ObjId < 0 || data[x][y].ObjId==id || (targetId >=0 && data[x][y].ObjId==targetId));
+    }
+}
+
+vector<Node> MapGrid::aStar(Node player, Node dest, int id, int targetId, bool usemouvement) {
    vector<Node> empty;
-   if (isValid(dest.x, dest.y, id) == false) {
+   if (isValid(dest.x, dest.y, id,targetId) == false) {
        cout << "Destination is an obstacle" << endl;
        return empty;
        //Destination is invalid
@@ -253,12 +257,14 @@ vector<Node> MapGrid::aStar(Node player, Node dest, int id) {
            }
            node = *itNode;
            openList.erase(itNode);
-       } while (isValid(node.x, node.y, id) == false);
+       } while (isValid(node.x, node.y, id, targetId) == false);
 
 
-       if(node.gCost < FLT_MAX && node.gCost >((Character*)objects[id])->getMovement()){
-           cout << "too far" << endl;
-           return empty;
+       if(usemouvement){
+           if(node.gCost < FLT_MAX && node.gCost >((Character*)objects[id])->getMovement()){
+               //cout << "too far" << endl;
+               return empty;
+           }
        }
 
        x = node.x;
@@ -271,7 +277,7 @@ vector<Node> MapGrid::aStar(Node player, Node dest, int id) {
            for (int newY = -1; newY <= 1; newY++) {
                if(newX==0 || newY==0){
                    double gNew, hNew, fNew;
-                   if (isValid(x + newX, y + newY, id)) {
+                   if (isValid(x + newX, y + newY, id,targetId)) {
                        if (isDestination(x + newX, y + newY, dest))
                        {
                            //Destination found - make path
@@ -308,7 +314,7 @@ vector<Node> MapGrid::aStar(Node player, Node dest, int id) {
         }
     }
     if (destinationFound == false) {
-        cout << "Destination not found" << endl;
+        //cout << "Destination not found" << endl;
         return empty;
     }
 }
@@ -316,7 +322,7 @@ vector<Node> MapGrid::aStar(Node player, Node dest, int id) {
 
 vector<Node> MapGrid::makePath(vector<vector<Node> > map, Node dest) {
     try {
-        cout << "Found a path" << endl;
+        //cout << "Found a path" << endl;
         int x = dest.x;
         int y = dest.y;
         stack<Node> path;

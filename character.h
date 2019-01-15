@@ -7,7 +7,7 @@
 class Character : public Object
 {
 public:
-    Character(string ObjFileName, string TextureFileName, int m, int h, int team);
+    Character(string ObjFileName, string TextureFileName, int m, int h, int team, Weapon* weapon);
     void damage(int d, bool t);
 
     int getTeam(){
@@ -18,9 +18,17 @@ public:
         return movement;
     }
 
+    Weapon* getWeapon(){
+            return this->weapon;
+        }
+
+
+    int hp;
+    int hpmax;
+    bool actionDone=false;
+
 protected:
     int movement;
-    int hp;
     int team;
 
     Weapon* weapon;

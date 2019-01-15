@@ -9,11 +9,7 @@ public:
     Weapon(int r, int d, bool t);
 
     virtual void shoot(MapGrid grid,int x, int y)=0;
-
-protected:
-    int range;
-    int damage;
-    bool terraformer;
+    void shoot(MapGrid grid,pair<int,int> t);
 
     int getRange() const{
         return this->range;
@@ -26,6 +22,13 @@ protected:
     bool isTerraformer() const{
         return this->terraformer;
     }
+
+protected:
+    int range;
+    int damage;
+    bool terraformer;
+
+
 };
 
 #endif // WEAPON_H

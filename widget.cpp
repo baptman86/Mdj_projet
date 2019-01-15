@@ -3,17 +3,14 @@
 Widget::Widget(int randseed, int fps,unsigned int gridSize, float size, QWidget *parent)
 {
     mainWidget = new MainWidget(randseed,fps,gridSize,size,this);
-    moveButton = new QPushButton("Move");
-    shootButton = new QPushButton("Shoot");
+
     endTurnButton = new QPushButton("End Turn");
 
-    moveButton->installEventFilter(this);
-    shootButton->installEventFilter(this);
+
+    ui = new QHBoxLayout;
+
     endTurnButton->installEventFilter(this);
 
-    QHBoxLayout *ui = new QHBoxLayout;
-    ui->addWidget(moveButton);
-    ui->addWidget(shootButton);
     ui->addWidget(endTurnButton);
 
     QVBoxLayout *assemble = new QVBoxLayout;
@@ -22,6 +19,11 @@ Widget::Widget(int randseed, int fps,unsigned int gridSize, float size, QWidget 
 
     this->focusPolicy();
     this->setLayout(assemble);
+
+
+
+
+    timer.start(1000, this);
 }
 
 bool Widget::eventFilter(QObject *object, QEvent *event)
@@ -67,15 +69,51 @@ bool Widget::eventFilter(QObject *object, QEvent *event)
         mainWidget->key_pressed.remove((Qt::Key)e->key());
     }
     if(event->type() == QEvent::MouseButtonPress){
-        if(object == moveButton){
-            cout << "1" << endl;
-        }
-        if(object == shootButton){
-            cout << "2" << endl;
-        }
         if(object == endTurnButton){
             cout << "3" << endl;
         }
     }
     return false;
+}
+
+void Widget::timerEvent(QTimerEvent *e)
+{
+    displayCharacter();
+    update();
+}
+
+void Widget::displayCharacter(){
+    for(QVBoxLayout* l : characterInfos){
+        ui->removeItem(l);
+        for(int i=0;i<l->count();i++){
+            l->takeAt(i)->widget()->hide();
+            delete l->takeAt(i)->widget();
+        }
+        delete l;
+    }
+    characterInfos.clear();
+    for(int id : mainWidget->grid.charactersId){
+        string color = "rgba( 160, 0, 0, 255)";
+        if(((Character*)mainWidget->grid.objects[id])->getTeam()!=0){
+            color = "rgba( 80, 80, 160, 255)";
+        }
+
+
+        QLabel *label = new QLabel();
+        label->setText(string("soldierRifle").append(to_string(id)).c_str());
+        label->setStyleSheet( "QWidget{ background-color : "+QString::fromStdString(color)+"; border-radius : 2px;  }" );
+        label->setFixedHeight(15);
+        label->setWordWrap(true);
+        QVBoxLayout *layout = new QVBoxLayout();
+        layout->addWidget(label);
+
+        QProgressBar* pb = new QProgressBar();
+        pb->setRange(0,((Character*)mainWidget->grid.objects[id])->hpmax);
+        pb->setValue(((Character*)mainWidget->grid.objects[id])->hp);
+        pb->setStyleSheet( "QWidget{ background-color : "+QString::fromStdString(color)+"; border-radius : 2px;  }" );
+        layout->addWidget(pb);
+
+        characterInfos.push_back(layout);
+        ui->addLayout(layout);
+    }
 }

@@ -77,6 +77,7 @@
 #include "character.h"
 #include "obstacle.h"
 #include "mapgrid.h"
+#include "ai.h"
 
 
 using namespace std;
@@ -99,7 +100,9 @@ public:
     QQuaternion init_rotation;
     qreal target_angle = 0;
     qreal angle = 0;
+
     MapGrid grid;
+
     QSet<Qt::Key> key_pressed;
 
     pair<int,int> cursorCoord;
@@ -107,6 +110,28 @@ public:
     pair<int,int> selected;
     int selectedObjId;
 
+    AI* ai;
+    int turn;
+
+    int getTurn(){
+        return this->turn;
+    }
+
+    void addTurn(){
+        this->turn++;
+    }
+
+    int teamTurn;
+
+    //Nombre de characters dans une team
+    bool areAllActionsDone();
+
+    void makeCharacterShoot(int i, pair<int,int> target);
+    void makeCharacterMove(int i, pair<int,int> target);
+
+    //demarre le tour de l'equipe numero t
+    void startTurn();
+    void endTurn();
 protected:
     void wheelEvent(QWheelEvent *event) override;
     void timerEvent(QTimerEvent *e) override;
@@ -143,6 +168,7 @@ private:
     QOpenGLTexture *textureCharacter;
 
     QMatrix4x4 projection;
+    QMatrix4x4 projectionTransform;
     QMatrix4x4 modelView;
 
     QVector2D mousePressPosition;

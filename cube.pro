@@ -12,7 +12,8 @@ SOURCES += main.cpp \
     mapgrid.cpp \
     weapon.cpp \
     rifle.cpp \
-    widget.cpp
+    widget.cpp \
+    ai.cpp
 
 SOURCES += \
     mainwidget.cpp \
@@ -29,7 +30,8 @@ HEADERS += \
     mapgrid.h \
     weapon.h \
     rifle.h \
-    widget.h
+    widget.h \
+    ai.h
 
 RESOURCES += \
     shaders.qrc \

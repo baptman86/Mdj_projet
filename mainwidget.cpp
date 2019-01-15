@@ -59,10 +59,12 @@ MainWidget::MainWidget(int randseed, int fps,unsigned int gridSize, float size, 
     size(size),
     cursorCoord(make_pair(gridSize/2,gridSize/2)),
     selected(make_pair(-1,-1)),
-    selectedObjId(-1)
+    selectedObjId(-1),
+    turn(1),
+    teamTurn(1)
 {
     srand (randseed);
-
+    projectionTransform.setToIdentity();
 }
 
 MainWidget::~MainWidget()
@@ -114,6 +116,7 @@ void MainWidget::wheelEvent(QWheelEvent *event){
     QPoint numDegrees = event->angleDelta()/8;
     if(!numDegrees.isNull()){
         projection.translate(QVector3D(0,0,0.003f*numDegrees.y()));
+        projectionTransform.translate(QVector3D(0,0,0.003f*numDegrees.y()));
         update();
     }
 }
@@ -154,21 +157,27 @@ void MainWidget::move_handler(){
 
     if(key_pressed.contains(Qt::Key_Z)){
         projection.translate(QVector3D(0,-cameraSpeed/s,cameraSpeed/s));
+        projectionTransform.translate(QVector3D(0,-cameraSpeed/s,cameraSpeed/s));
     }
     if(key_pressed.contains(Qt::Key_S)){
         projection.translate(QVector3D(0,cameraSpeed/s,-cameraSpeed/s));
+        projectionTransform.translate(QVector3D(0,cameraSpeed/s,-cameraSpeed/s));
     }
     if(key_pressed.contains(Qt::Key_D)){
         projection.translate(QVector3D(-cameraSpeed,0,0));
+        projectionTransform.translate(QVector3D(-cameraSpeed,0,0));
     }
     if(key_pressed.contains(Qt::Key_Q)){
         projection.translate(QVector3D(cameraSpeed,0,0));
+        projectionTransform.translate(QVector3D(cameraSpeed,0,0));
     }
     if(key_pressed.contains(Qt::Key_Plus)){
         projection.translate(QVector3D(0,0,cameraSpeed));
+        projectionTransform.translate(QVector3D(0,0,cameraSpeed));
     }
     if(key_pressed.contains(Qt::Key_Minus)){
         projection.translate(QVector3D(0,0,-cameraSpeed));
+        projectionTransform.translate(QVector3D(0,0,-cameraSpeed));
     }
 }
 
@@ -300,6 +309,7 @@ void MainWidget::resizeGL(int w, int h)
 
     // Set perspective projection
     projection.perspective(fov, aspect, zNear, zFar);
+    projection*=projectionTransform;
     /*QVector3D centerOfInterest(0, 0, 0), up(1, 0, 0);
     modelView.setToIdentity();
     modelView.lookAt(eye, centerOfInterest, up);*/
@@ -439,4 +449,127 @@ void MainWidget::paintGL()
 
         grid.objects[id]->mesh.draw(&programMesh);
     }
+}
+
+bool MainWidget::areAllActionsDone(){
+    bool inter = true;
+    for(int id : this->grid.charactersId){
+        Object *obj=this->grid.objects[id];
+        Character *chara = static_cast <Character *>(obj);
+        if(this->teamTurn==chara->getTeam()&&chara->actionDone==false){
+            inter=false;
+        }
+    }
+
+    if(inter) {
+        this->endTurn();
+    }
+    return inter;
+}
+
+void MainWidget::makeCharacterShoot(int i, pair<int,int> target){
+    Object *obj = this->grid.objects[i];
+    Character *chara = static_cast <Character *>(obj);
+
+    if(chara->actionDone) {
+        cout << "Le personnage a deja agi ce tour" << endl;
+    } else {
+        //récupère la cible
+        int idTarget = this->grid.getData()[target.first][target.second].ObjId;
+
+        Object *obj2 = this->grid.objects[idTarget];
+        Character *chara2 = static_cast <Character *>(obj2);
+
+        bool doneSomething = false;
+        cout << chara->getCoord().first << " : " << chara->getCoord().second << endl;
+        if(this->grid.isInLosAndRange(chara->getCoord(),target,chara->getWeapon()->getRange())){
+
+            chara2->damage(chara->getWeapon()->getDamage(),chara->getWeapon()->isTerraformer());
+            cout << "tir reussi" ;
+
+            doneSomething = true;
+
+        } else {
+            cout << "cible hors de vue ou trop loin" << endl;
+        }
+
+        if(doneSomething){
+            chara->actionDone=true;
+            this->areAllActionsDone();
+        }
+
+    }
+}
+
+void MainWidget::makeCharacterMove(int i, pair<int,int> target){
+    Object *obj = this->grid.objects[i];
+    Character *chara = static_cast <Character *>(obj);
+
+    if(chara->actionDone) {
+        cout << "Le personnage a deja agi ce tour" << endl;
+    } else {
+
+        Node player;
+        player.x = chara->getCoord().first;
+        player.y = chara->getCoord().second;
+
+        Node destination;
+        destination.x = target.first;
+        destination.y = target.second;
+
+        bool doneSomething = false;
+
+        if(grid.aStar(player, destination,i).size()){
+            grid.setObject(i,destination.x,destination.y);
+            doneSomething = true;
+        } else {
+            cout << "Pas de chemin possible";
+        }
+
+        if(doneSomething){
+            chara->actionDone=true;
+            this->areAllActionsDone();
+        }
+
+    }
+}
+
+void MainWidget::startTurn(){
+    //si l'équipe est gérée par une IA, fait agir
+    string msg = "Le tour de l'equipe " ;
+    msg.append(to_string(this->teamTurn));
+    msg.append(" commence.");
+    cout << msg  << endl;
+    if(this->teamTurn!=0){
+        for(int id : this->ai->characterIds){
+            Object *obj = grid.objects[id];
+            Character *chara = static_cast <Character *>(obj);
+            this->ai->currentCharacter=id;
+
+            pair <string, pair<int,int> > aiAnswer =make_pair("ACTION_SHOOT",make_pair(3,3));// this->ai->act(grid,*chara);
+            if(aiAnswer.first=="ACTION_SHOOT"){
+                this->makeCharacterShoot(id,aiAnswer.second);
+            } else {
+//                chara->actionDone=true;
+//                this->areAllActionsDone();
+                this->makeCharacterMove(id,aiAnswer.second);
+            }
+        }
+    }
+}
+
+void MainWidget::endTurn(){
+    for(int id : this->grid.charactersId){
+        Object *obj = grid.objects[id];
+        Character *chara = static_cast <Character *>(obj);
+
+        chara->actionDone=false;
+    }
+    this->turn++;
+    if(this->teamTurn==0){
+        this->teamTurn=1;
+    } else {
+        this->teamTurn=0;
+    }
+    this->startTurn();
 }

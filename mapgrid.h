@@ -50,9 +50,10 @@ public:
     bool setObject(int id, int x, int y);
 
     bool isInLosAndRange( float x1, float y1, float x2, float y2, int r );
+    bool isInLosAndRange( pair<int, int> begin, pair<int,int> end, int r );
 
-    bool isValid(int x, int y, int id);
-    vector<Node> aStar(Node player, Node dest, int id);
+    bool isValid(int x, int y, int id, int targetId);
+    vector<Node> aStar(Node player, Node dest, int id, int targetId=-1, bool usemouvement=true);
     vector<Node> makePath(vector<vector<Node> > map, Node dest);
 
     void unenlight(int x, int y);
