@@ -64,8 +64,6 @@ MainWidget::MainWidget(int randseed, int fps,unsigned int gridSize, float size, 
     teamTurn(1)
 {
     srand (randseed);
-    AI *ai = new AI(this->grid);
-    this->ai=ai;
 }
 
 MainWidget::~MainWidget()
