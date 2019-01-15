@@ -22,7 +22,7 @@ AI::AI(MapGrid grid){
 
 pair <string, pair<int,int> > AI::act(MapGrid grid, Character c){
 
-    cout << "AI ENGAGED";
+    cout << "AI ENGAGED" << endl;
     //si pas d'arme
     if(c.getWeapon()==nullptr){
         cout << "moi " << c.ObjFileName << ",j'ai pas d'arme lol" << endl;
