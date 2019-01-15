@@ -68,13 +68,13 @@ bool Widget::eventFilter(QObject *object, QEvent *event)
     }
     if(event->type() == QEvent::MouseButtonPress){
         if(object == moveButton){
-            cout << "1" << endl;
+            this->mainWidget->makeCharacterMove(this->mainWidget->selectedObjId, this->mainWidget->cursorCoord);
         }
         if(object == shootButton){
-            cout << "2" << endl;
+            this->mainWidget->makeCharacterShoot(this->mainWidget->selectedObjId, this->mainWidget->cursorCoord);
         }
         if(object == endTurnButton){
-            cout << "3" << endl;
+            this->mainWidget->endTurn();
         }
     }
     return false;

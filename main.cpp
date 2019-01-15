@@ -74,6 +74,11 @@ int main(int argc, char *argv[])
     widget.mainWidget->grid.addCharacter(new Character("soldierRifle.obj","soldierRifleTexture.jpg",5,5,1),5,7);
     widget.mainWidget->grid.addObstacle(new Obstacle("rockLarge.obj","rockLargeTexture.png"),6,7);
 
+    AI *ai = new AI(widget.mainWidget->grid);
+    widget.mainWidget->ai = *ai;
+
+    widget.mainWidget->startTurn();
+
     widget.resize(1024,768);
     widget.show();
 #else

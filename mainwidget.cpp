@@ -60,11 +60,12 @@ MainWidget::MainWidget(int randseed, int fps,unsigned int gridSize, float size, 
     cursorCoord(make_pair(gridSize/2,gridSize/2)),
     selected(make_pair(-1,-1)),
     selectedObjId(-1),
-    ai(grid),
     turn(1),
     teamTurn(1)
 {
     srand (randseed);
+    AI *ai = new AI(this->grid);
+    this->ai=*ai;
 }
 
 MainWidget::~MainWidget()
@@ -453,7 +454,9 @@ bool MainWidget::areAllActionsDone(){
         }
     }
 
-    this->endTurn();
+    if(inter) {
+        this->endTurn();
+    }
     return inter;
 }
 
@@ -461,28 +464,73 @@ void MainWidget::makeCharacterShoot(int i, pair<int,int> target){
     Object *obj = this->grid.objects[i];
     Character *chara = static_cast <Character *>(obj);
 
+    if(chara->actionDone) {
+        cout << "Le personnage a deja agi ce tour";
+    } else {
+        //récupère la cible
+        int idTarget = this->grid.getData()[target.first][target.second].ObjId;
 
-    //récupère la cible
-    int idTarget = this->grid.getData()[target.first][target.second].ObjId;
+        Object *obj2 = this->grid.objects[idTarget];
+        Character *chara2 = static_cast <Character *>(obj2);
 
-    Object *obj2 = this->grid.objects[idTarget];
-    Character *chara2 = static_cast <Character *>(obj2);
+        bool doneSomething = false;
 
+        if(this->grid.isInLosAndRange(chara->getCoord(),target,chara->getWeapon()->getRange())){
 
-    chara2->damage(chara->getWeapon()->getDamage(),chara->getWeapon()->isTerraformer());
-    cout << "tir reussi" ;
+            chara2->damage(chara->getWeapon()->getDamage(),chara->getWeapon()->isTerraformer());
+            cout << "tir reussi" ;
 
-    chara->actionDone=true;
-    this->areAllActionsDone();
+            doneSomething = true;
+
+        } else {
+            cout << "cible hors de vue ou trop loin";
+        }
+
+        if(doneSomething){
+            chara->actionDone=true;
+            this->areAllActionsDone();
+        }
+
+    }
 }
-void MainWidget::makeCharacterMove(int i, pair<int,int> target){
 
+void MainWidget::makeCharacterMove(int i, pair<int,int> target){
+    Object *obj = this->grid.objects[i];
+    Character *chara = static_cast <Character *>(obj);
+
+    if(chara->actionDone) {
+        cout << "Le personnage a deja agi ce tour";
+    } else {
+
+        Node player;
+        player.x = chara->getCoord().first;
+        player.y = chara->getCoord().second;
+
+        Node destination;
+        destination.x = target.first;
+        destination.y = target.second;
+
+        bool doneSomething = false;
+
+        if(grid.aStar(player, destination,i).size()){
+            grid.setObject(i,destination.x,destination.y);
+            doneSomething = true;
+        } else {
+            cout << "Pas de chemin possible";
+        }
+
+        if(doneSomething){
+            chara->actionDone=true;
+            this->areAllActionsDone();
+        }
+
+    }
 }
 
 void MainWidget::startTurn(){
-    //si l'équipe est gérée par une IA
+    //si l'équipe est gérée par une IA, fait agir
     if(this->teamTurn!=0){
-        for(int id : this->grid.charactersId){
+        for(int id : this->ai.characterIds){
             Object *obj = grid.objects[id];
             Character *chara = static_cast <Character *>(obj);
             this->ai.currentCharacter=id;
@@ -491,14 +539,21 @@ void MainWidget::startTurn(){
             if(aiAnswer.first=="ACTION_SHOOT"){
                 this->makeCharacterShoot(id,aiAnswer.second);
             } else {
-                chara->actionDone=true;
-                this->areAllActionsDone();
+//                chara->actionDone=true;
+//                this->areAllActionsDone();
+                this->makeCharacterMove(id,aiAnswer.second);
             }
         }
     }
 }
 
 void MainWidget::endTurn(){
+    for(int id : this->grid.charactersId){
+        Object *obj = grid.objects[id];
+        Character *chara = static_cast <Character *>(obj);
+
+        chara->actionDone=false;
+    }
     this->turn++;
     if(this->teamTurn==0){
         this->teamTurn=1;

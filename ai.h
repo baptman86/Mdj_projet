@@ -22,7 +22,9 @@ protected:
     string action;
     pair<int,int> targetCoord;
     void resolve(MapGrid grid, Character c);
-    void lookForTarget(MapGrid grid, Character c);
+    bool lookForTarget(MapGrid grid, Character c);
+
+    pair<int,int> goToClosestTarget(MapGrid grid, Character c);
 
 };
 

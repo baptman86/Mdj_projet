@@ -1,6 +1,3 @@
-#pragma once
-//Necessaire a cause d'un bug de qt avec des inclusions circulaires meme avec les guards (ifndef)
-
 #ifndef GRID_H
 #define GRID_H
 
@@ -8,6 +5,7 @@
 #include "object.h"
 #include <stack>
 #include <iostream>
+#include <float.h>
 
 enum GroundType { plante, boue, roche, end };
 
@@ -28,6 +26,11 @@ struct Node
     float fCost;
 };
 
+inline bool operator < (const Node& lhs, const Node& rhs)
+{//We need to overload "<" to put our struct into a set
+    return lhs.fCost < rhs.fCost;
+}
+
 using namespace std;
 
 
@@ -46,9 +49,12 @@ public:
 
     bool setObject(int id, int x, int y);
 
-    bool isValid(int x, int y, int id);
-    vector<Node> aStar(Node player, Node dest, int id);
-    vector<Node> makePath(vector<vector<Node> > map, Node dest);
+    bool isInLosAndRange( float x1, float y1, float x2, float y2, int r );
+    bool isInLosAndRange( pair<int, int> begin, pair<int,int> end, int r );
+
+    bool isValid(int x, int y, int id, int targetId);
+    vector<Node> aStar(Node player, Node dest, int id, int targetId=-1, bool usemouvement=true);
+
 
     void unenlight(int x, int y);
     void enlight(int x, int y);
@@ -58,14 +64,8 @@ public:
     vector<int> charactersId;
     vector<int> obstaclesId;
 
-    bool isInLosAndRange( float x1, float y1, float x2, float y2, int r );
-    bool isInLosAndRange( pair<int,int> begin, pair<int,int> end, int r );
-
-
 protected:
-
     int size;
-
     vector<vector<gridData> > data;
 
     GroundType randomGround() {
@@ -75,8 +75,7 @@ protected:
 
     vector<pair<int,int>> toGridCoordinates(int* paths);
 
-
-
+    vector<Node> makePath(vector<vector<Node> > map, Node dest);
 
 };
 
