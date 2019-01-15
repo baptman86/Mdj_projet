@@ -21,12 +21,18 @@ AI::AI(MapGrid grid){
 //}
 
 pair <string, pair<int,int> > AI::act(MapGrid grid, Character c){
-    lookForTarget(grid,c);
-
+    if(c.getWeapon()==nullptr){
+        cout << "moi " << c.ObjFileName << ",j'ai pas d'arme lol" ;
+        this->action="derp";
+        this->targetCoord=make_pair(0,0);
+    } else {
+        lookForTarget(grid,c);
+    }
     return make_pair(this->action,this->targetCoord);
 }
 
 void AI::lookForTarget(MapGrid grid, Character c){
+
     Character *target;
     bool targetFound = false;
     int maxEnnemyHealth=0;
@@ -47,6 +53,7 @@ void AI::lookForTarget(MapGrid grid, Character c){
         this->action="ACTION_SHOOT";
         this->targetCoord=target->getCoord();
     }
+
 }
 
 
