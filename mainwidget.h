@@ -120,6 +120,7 @@ protected:
     pair<int,int> cursorCoord;
 
     pair<int,int> selected;
+    int selectedObjId;
 
     Mesh cursor;
 
@@ -128,8 +129,6 @@ protected:
     size_t frames_count;
     size_t ups_count; // updates per second
     size_t updates_count;
-
-    size_t gridSize;
 
     QTime time;
 

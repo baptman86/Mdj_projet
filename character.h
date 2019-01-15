@@ -14,6 +14,10 @@ public:
         return team;
     }
 
+    int getMovement(){
+        return movement;
+    }
+
 protected:
     int movement;
     int hp;

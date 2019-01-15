@@ -58,7 +58,8 @@ MainWidget::MainWidget(int randseed, int fps,unsigned int gridSize, float size, 
     grid(MapGrid(gridSize,randseed)),
     size(size),
     cursorCoord(make_pair(gridSize/2,gridSize/2)),
-    selected(make_pair(-1,-1))
+    selected(make_pair(-1,-1)),
+    selectedObjId(-1)
 {
     srand (randseed);
 }
@@ -88,37 +89,64 @@ void MainWidget::keyPressEvent(QKeyEvent *e){
     }*/
 
     if(e->key()==Qt::Key_Up){
-        cursorCoord.second++;
+        if(cursorCoord.second<(grid.getSize()-1)){
+            cursorCoord.second++;
+        }
     }
     if(e->key()==Qt::Key_Down){
-        cursorCoord.second--;
+        if(cursorCoord.second>0){
+            cursorCoord.second--;
+        }
     }
     if(e->key()==Qt::Key_Right){
-        cursorCoord.first++;
+        if(cursorCoord.first<(grid.getSize()-1)){
+            cursorCoord.first++;
+        }
     }
     if(e->key()==Qt::Key_Left){
-        cursorCoord.first--;
+        if(cursorCoord.first>0){
+            cursorCoord.first--;
+        }
     }
     if(e->key()==Qt::Key_Enter-1){
-        if(selected.first==-1 || selected.second==-1){
-            selected = cursorCoord;
+        if(selected.first==-1 || selected.second==-1 || selectedObjId==-1){
+            selectedObjId = grid.getData()[cursorCoord.first][cursorCoord.second].ObjId;
+
+            vector<int> cid = grid.charactersId;
+            if(std::find(cid.begin(), cid.end(), selectedObjId) != cid.end()){
+                for(int i=0;i<grid.getSize();i++){
+                    for(int j=0;j<grid.getSize();j++){
+                        Node player;
+                        player.x = cursorCoord.first;
+                        player.y = cursorCoord.second;
+
+                        Node destination;
+                        destination.x = i;
+                        destination.y = j;
+                        if(grid.aStar(player, destination,selectedObjId).size()){
+                            grid.enlight(i,j);
+                        }
+                    }
+                }
+                selected = cursorCoord;
+            }
         }
         else{
-            vector<pair<int,int> > path;
-            if(grid.findPath(selected.first,selected.second,cursorCoord.first,cursorCoord.second,&path)){
-                cout << path.size() << endl;
-                for(pair<int,int> p : path){
-                    cout << p.first << " : " << p.second << endl;
-                }
-            }
-            else{
-                cout << "pas de chemin" << endl;
+            if(grid.getData()[cursorCoord.first][cursorCoord.second].Surbr){
+                grid.setObject(selectedObjId,cursorCoord.first,cursorCoord.second);
+                grid.clear();
+                selected.first=-1;
+                selected.second=-1;
+                selectedObjId=-1;
             }
         }
     }
     if(e->key()==Qt::Key_Escape){
+        grid.clear();
         selected.first=-1;
         selected.second=-1;
+        selectedObjId=-1;
+
     }
     update();
 }
@@ -146,11 +174,9 @@ void display(QMatrix4x4 mat){
 }
 
 
-int euh=0;
 void MainWidget::mousePressEvent(QMouseEvent *e)
 {
-    grid.setObject(0,euh,euh);
-    euh++;
+
 }
 
 void MainWidget::rotation_handler(){
@@ -358,6 +384,9 @@ void MainWidget::paintGL()
     };
 
     /////////////////////TERRAIN
+
+    geometries->~GeometryEngine();
+    geometries = new GeometryEngine(&grid,size);
     texture->bind();
 
     if (!program.bind()){
@@ -371,6 +400,7 @@ void MainWidget::paintGL()
 
     // Use texture unit 0 which contains cube.png
     program.setUniformValue("texture", 0);
+    program.setUniformValue("a_color", QVector4D(0,1,0,1)*0.4);
 
     // Draw cube geometry
     geometries->drawPlaneGeometry(&program);
@@ -399,7 +429,7 @@ void MainWidget::paintGL()
     cursor.draw(&programMesh);
 
     ////////////////////////MESH DES OBJETS
-    ///
+
     programMesh.setUniformValue("v_matrix", QMatrix4x4());
     programMesh.setUniformValue("p_matrix", projection);
     //programMesh.setUniformValue("light_position", QVector3D(light[0], light[1], light[2]));

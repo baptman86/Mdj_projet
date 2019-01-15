@@ -62,7 +62,7 @@
 struct VertexData
 {
     QVector3D position;
-    QVector2D texCoord;
+    QVector3D texInfo;
 };
 
 //! [0]
@@ -128,10 +128,13 @@ void GeometryEngine::initPlaneGeometry(float size)
                 break;
         }
 
-        vertices[i] =   {QVector3D( x+(i_img/(gridSize-1))*size, y+(j_img/(gridSize-1))*size,  0 ), QVector2D(1.0f/3*texture, 0.0f)};  // v0
-        vertices[i+1] = {QVector3D( x+((i_img+1)/(gridSize-1))*size , y+(j_img/(gridSize-1))*size,  0 ), QVector2D(1.0f/3*(texture+1), 0.0f)}; // v1
-        vertices[i+2] = {QVector3D( x+(i_img/(gridSize-1))*size, y+((j_img+1)/(gridSize-1))*size ,  0 ), QVector2D(1.0f/3*texture, 1.0f)};  // v2
-        vertices[i+3] = {QVector3D( x+((i_img+1)/(gridSize-1))*size  , y+((j_img+1)/(gridSize-1))*size ,  0 ), QVector2D(1.0f/3*(texture+1), 1.0f)}; // v3
+        float enlight = mapGrid->getData()[i_img][j_img].Surbr;
+
+
+        vertices[i] =   {QVector3D( x+(i_img/(gridSize-1))*size, y+(j_img/(gridSize-1))*size,  0 ), QVector3D(1.0f/3*texture, 0.0f,enlight)};  // v0
+        vertices[i+1] = {QVector3D( x+((i_img+1)/(gridSize-1))*size , y+(j_img/(gridSize-1))*size,  0 ), QVector3D(1.0f/3*(texture+1), 0.0f,enlight)}; // v1
+        vertices[i+2] = {QVector3D( x+(i_img/(gridSize-1))*size, y+((j_img+1)/(gridSize-1))*size ,  0 ), QVector3D(1.0f/3*texture, 1.0f,enlight)};  // v2
+        vertices[i+3] = {QVector3D( x+((i_img+1)/(gridSize-1))*size  , y+((j_img+1)/(gridSize-1))*size ,  0 ), QVector3D(1.0f/3*(texture+1), 1.0f,enlight)}; // v3
 
 
         indices[i_indices] = i;
@@ -177,9 +180,11 @@ void GeometryEngine::drawPlaneGeometry(QOpenGLShaderProgram *program)
     offset += sizeof(QVector3D);
 
     // Tell OpenGL programmable pipeline how to locate vertex texture coordinate data
-    int texcoordLocation = program->attributeLocation("a_texcoord");
+    int texcoordLocation = program->attributeLocation("a_texinfo");
     program->enableAttributeArray(texcoordLocation);
-    program->setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 2, sizeof(VertexData));
+    program->setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 3, sizeof(VertexData));
+
+
 
     // Draw cube geometry using indices from VBO 1
     glDrawElements(GL_TRIANGLES, 10000000, GL_UNSIGNED_SHORT, 0);

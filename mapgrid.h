@@ -1,18 +1,29 @@
 #ifndef GRID_H
 #define GRID_H
+
 #include <vector>
-#include "astar.h"
 #include "object.h"
+#include <stack>
+#include <iostream>
 
 enum GroundType { plante, boue, roche, end };
-enum SurbrType { rien, brillant };
 
-typedef struct gridData{
+struct gridData{
     int ObjId;
     GroundType GroundType;
-    SurbrType SurbrType;
-} gridData;
+    int Surbr;
+};
 
+struct Node
+{
+    int y;
+    int x;
+    int parentX;
+    int parentY;
+    float gCost;
+    float hCost;
+    float fCost;
+};
 
 using namespace std;
 
@@ -32,8 +43,13 @@ public:
 
     bool setObject(int id, int x, int y);
 
-    bool isInLosAndRange( const float x1, const float y1, const float x2, const float y2, int r);
-    bool findPath(int xStart,int yStart,int xEnd,int yEnd, vector<pair<int,int> >* path);
+    bool isValid(int x, int y, int id);
+    vector<Node> aStar(Node player, Node dest, int id);
+    vector<Node> makePath(vector<vector<Node> > map, Node dest);
+
+    void unenlight(int x, int y);
+    void enlight(int x, int y);
+    void clear();
 
     vector<Object*> objects;
     vector<int> charactersId;

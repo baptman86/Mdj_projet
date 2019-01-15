@@ -27,7 +27,6 @@ HEADERS += \
     character.h \
     mapgrid.h \
     weapon.h \
-    astar.h \
     rifle.h
 
 RESOURCES += \
@@ -41,3 +40,5 @@ LIBS += \
 # install
 target.path = $$[QT_INSTALL_EXAMPLES]/opengl/cube
 INSTALLS += target
+
+DISTFILES +=
