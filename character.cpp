@@ -1,6 +1,6 @@
 #include "character.h"
 
-Character::Character(string objFileName, string TextureFileName, int m, int h, int team) : Object (objFileName, TextureFileName), movement(m), hp(h), team(team)
+Character::Character(string objFileName, string TextureFileName, int m, int h, int team) : Object (objFileName, TextureFileName), movement(m), hp(h), team(team), actionDone(false)
 {
 }
 

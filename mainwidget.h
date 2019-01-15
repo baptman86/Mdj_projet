@@ -77,6 +77,7 @@
 #include "character.h"
 #include "obstacle.h"
 #include "mapgrid.h"
+#include "ai.h"
 
 
 using namespace std;
@@ -106,6 +107,30 @@ public:
 
     pair<int,int> selected;
     int selectedObjId;
+
+
+    AI ai;
+    int turn;
+
+    int getTurn(){
+        return this->turn;
+    }
+
+    void addTurn(){
+        this->turn++;
+    }
+
+    int teamTurn;
+
+    //Nombre de characters dans une team
+    bool areAllActionsDone();
+
+    void makeCharacterShoot(int i, pair<int,int> target);
+    void makeCharacterMove(int i, pair<int,int> target);
+
+    //demarre le tour de l'equipe numero t
+    void startTurn();
+    void endTurn();
 
 protected:
     void wheelEvent(QWheelEvent *event) override;

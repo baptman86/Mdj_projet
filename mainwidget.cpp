@@ -59,10 +59,12 @@ MainWidget::MainWidget(int randseed, int fps,unsigned int gridSize, float size, 
     size(size),
     cursorCoord(make_pair(gridSize/2,gridSize/2)),
     selected(make_pair(-1,-1)),
-    selectedObjId(-1)
+    selectedObjId(-1),
+    ai(grid),
+    turn(1),
+    teamTurn(1)
 {
     srand (randseed);
-
 }
 
 MainWidget::~MainWidget()
@@ -439,4 +441,56 @@ void MainWidget::paintGL()
 
         grid.objects[id]->mesh.draw(&programMesh);
     }
+}
+
+bool MainWidget::areAllActionsDone(){
+    bool inter = true;
+    for(int id : this->grid.charactersId){
+        Object *obj=this->grid.objects[id];
+        Character *chara = static_cast <Character *>(obj);
+        if(this->teamTurn==chara->getTeam()&&chara->actionDone==false){
+            inter=false;
+        }
+    }
+
+    this->endTurn();
+    return inter;
+}
+
+void MainWidget::makeCharacterShoot(int i, pair<int,int> target){
+    Object *obj = this->grid.objects[i];
+    Character *chara = static_cast <Character *>(obj);
+    //chara->shootWeapon(*this, target);
+
+    chara->actionDone=true;
+    this->areAllActionsDone();
+}
+void MainWidget::makeCharacterMove(int i, pair<int,int> target){
+
+}
+
+void MainWidget::startTurn(){
+    //si l'équipe est gérée par une IA
+    if(this->teamTurn!=0){
+        for(int id : this->grid.charactersId){
+            Object *obj = grid.objects[id];
+            Character *chara = static_cast <Character *>(obj);
+            this->ai.currentCharacter=id;
+
+            pair <string, pair<int,int> > aiAnswer = this->ai.act(grid,*chara);
+            if(aiAnswer.first=="ACTION_SHOOT"){
+                this->makeCharacterShoot(id,aiAnswer.second);
+            }
+        }
+    }
+}
+
+void MainWidget::endTurn(){
+    this->turn++;
+    if(this->teamTurn==0){
+        this->teamTurn=1;
+    } else {
+        this->teamTurn=0;
+    }
+    this->startTurn();
 }
