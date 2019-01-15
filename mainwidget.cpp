@@ -540,10 +540,11 @@ void MainWidget::startTurn(){
             pair <string, pair<int,int> > aiAnswer = this->ai->act(grid,*chara);
             if(aiAnswer.first=="ACTION_SHOOT"){
                 this->makeCharacterShoot(id,aiAnswer.second);
-            } else {
-//                chara->actionDone=true;
-//                this->areAllActionsDone();
+            } else if(aiAnswer.first=="ACTION_MOVE"){
                 this->makeCharacterMove(id,aiAnswer.second);
+            } else {
+                chara->actionDone=true;
+                this->areAllActionsDone();
             }
         }
     }
