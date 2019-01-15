@@ -5,6 +5,7 @@
 #include "object.h"
 #include <stack>
 #include <iostream>
+#include <float.h>
 
 enum GroundType { plante, boue, roche, end };
 
@@ -25,6 +26,11 @@ struct Node
     float fCost;
 };
 
+inline bool operator < (const Node& lhs, const Node& rhs)
+{//We need to overload "<" to put our struct into a set
+    return lhs.fCost < rhs.fCost;
+}
+
 using namespace std;
 
 
@@ -42,6 +48,8 @@ public:
     bool addObstacle(Object* o, int x, int y);
 
     bool setObject(int id, int x, int y);
+
+    bool isInLosAndRange( float x1, float y1, float x2, float y2, int r );
 
     bool isValid(int x, int y, int id);
     vector<Node> aStar(Node player, Node dest, int id);

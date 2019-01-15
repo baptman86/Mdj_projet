@@ -51,9 +51,8 @@
 #include <QApplication>
 #include <QLabel>
 #include <QSurfaceFormat>
-
 #ifndef QT_NO_OPENGL
-#include "mainwidget.h"
+#include "widget.h"
 #endif
 
 int main(int argc, char *argv[])
@@ -68,11 +67,14 @@ int main(int argc, char *argv[])
     app.setApplicationVersion("0.1");
 
 #ifndef QT_NO_OPENGL
-    MainWidget widget(time(NULL),60,12,1.0f);
-    widget.grid.addCharacter(new Character("soldierRifle.obj","soldierRifleTexture.jpg",5,5,0),3,3);
-    //widget.grid.addCharacter(new Character("soldierRifle.obj","soldierRifleTexture.jpg",5,5,0),1,3);
-    //widget.grid.addCharacter(new Character("soldierRifle.obj","soldierRifleTexture.jpg",5,5,1),5,7);
-    widget.grid.addObstacle(new Obstacle("rockLarge.obj","rockLargeTexture.png"),6,7);
+    Widget widget(time(NULL),60,12,1.0f);
+
+    widget.mainWidget->grid.addCharacter(new Character("soldierRifle.obj","soldierRifleTexture.jpg",5,5,0),3,3);
+    widget.mainWidget->grid.addCharacter(new Character("soldierRifle.obj","soldierRifleTexture.jpg",5,5,0),1,3);
+    widget.mainWidget->grid.addCharacter(new Character("soldierRifle.obj","soldierRifleTexture.jpg",5,5,1),5,7);
+    widget.mainWidget->grid.addObstacle(new Obstacle("rockLarge.obj","rockLargeTexture.png"),6,7);
+
+    widget.resize(1024,768);
     widget.show();
 #else
     QLabel note("OpenGL Support required");

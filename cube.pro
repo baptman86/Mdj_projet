@@ -11,7 +11,8 @@ SOURCES += main.cpp \
     character.cpp \
     mapgrid.cpp \
     weapon.cpp \
-    rifle.cpp
+    rifle.cpp \
+    widget.cpp
 
 SOURCES += \
     mainwidget.cpp \
@@ -27,7 +28,8 @@ HEADERS += \
     character.h \
     mapgrid.h \
     weapon.h \
-    rifle.h
+    rifle.h \
+    widget.h
 
 RESOURCES += \
     shaders.qrc \

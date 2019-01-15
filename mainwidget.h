@@ -71,6 +71,8 @@
 #include <QSet>
 #include <QTime>
 #include <QOpenGLTexture>
+#include <QVBoxLayout>
+#include <QPushButton>
 #include "object.h"
 #include "character.h"
 #include "obstacle.h"
@@ -90,6 +92,7 @@ public:
     ~MainWidget();
 
     void addObject(string objFileName);
+    void select();
 
     int fps;
     QQuaternion rotation;
@@ -97,12 +100,14 @@ public:
     qreal target_angle = 0;
     qreal angle = 0;
     MapGrid grid;
+    QSet<Qt::Key> key_pressed;
+
+    pair<int,int> cursorCoord;
+
+    pair<int,int> selected;
+    int selectedObjId;
 
 protected:
-    void mousePressEvent(QMouseEvent *e) override;
-    //void mouseReleaseEvent(QMouseEvent *e) override;
-    void keyPressEvent(QKeyEvent *e) override;
-    void keyReleaseEvent(QKeyEvent *e) override;
     void wheelEvent(QWheelEvent *event) override;
     void timerEvent(QTimerEvent *e) override;
     void rotation_handler();
@@ -116,11 +121,6 @@ protected:
     void initTextures();
 
     float size;
-
-    pair<int,int> cursorCoord;
-
-    pair<int,int> selected;
-    int selectedObjId;
 
     Mesh cursor;
 
@@ -144,8 +144,6 @@ private:
 
     QMatrix4x4 projection;
     QMatrix4x4 modelView;
-
-    vector<Character> Objects;
 
     QVector2D mousePressPosition;
     QVector3D rotationAxis;

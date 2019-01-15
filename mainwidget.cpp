@@ -62,6 +62,7 @@ MainWidget::MainWidget(int randseed, int fps,unsigned int gridSize, float size, 
     selectedObjId(-1)
 {
     srand (randseed);
+
 }
 
 MainWidget::~MainWidget()
@@ -75,84 +76,38 @@ MainWidget::~MainWidget()
 }
 
 
-QSet<Qt::Key> key_pressed;
+void MainWidget::select(){
+    if(selected.first==-1 || selected.second==-1 || selectedObjId==-1){
+        selectedObjId = grid.getData()[cursorCoord.first][cursorCoord.second].ObjId;
 
-void MainWidget::keyPressEvent(QKeyEvent *e){
+        vector<int> cid = grid.charactersId;
+        if(std::find(cid.begin(), cid.end(), selectedObjId) != cid.end()){
+            for(int i=0;i<grid.getSize();i++){
+                for(int j=0;j<grid.getSize();j++){
+                    Node player;
+                    player.x = cursorCoord.first;
+                    player.y = cursorCoord.second;
 
-    key_pressed << (Qt::Key)e->key();
-
-    /*if(e->key()==Qt::Key_A){
-        target_angle-=45.0;
-    }
-    if(e->key()==Qt::Key_E){
-        target_angle+=45.0;
-    }*/
-
-    if(e->key()==Qt::Key_Up){
-        if(cursorCoord.second<(grid.getSize()-1)){
-            cursorCoord.second++;
-        }
-    }
-    if(e->key()==Qt::Key_Down){
-        if(cursorCoord.second>0){
-            cursorCoord.second--;
-        }
-    }
-    if(e->key()==Qt::Key_Right){
-        if(cursorCoord.first<(grid.getSize()-1)){
-            cursorCoord.first++;
-        }
-    }
-    if(e->key()==Qt::Key_Left){
-        if(cursorCoord.first>0){
-            cursorCoord.first--;
-        }
-    }
-    if(e->key()==Qt::Key_Enter-1){
-        if(selected.first==-1 || selected.second==-1 || selectedObjId==-1){
-            selectedObjId = grid.getData()[cursorCoord.first][cursorCoord.second].ObjId;
-
-            vector<int> cid = grid.charactersId;
-            if(std::find(cid.begin(), cid.end(), selectedObjId) != cid.end()){
-                for(int i=0;i<grid.getSize();i++){
-                    for(int j=0;j<grid.getSize();j++){
-                        Node player;
-                        player.x = cursorCoord.first;
-                        player.y = cursorCoord.second;
-
-                        Node destination;
-                        destination.x = i;
-                        destination.y = j;
-                        if(grid.aStar(player, destination,selectedObjId).size()){
-                            grid.enlight(i,j);
-                        }
+                    Node destination;
+                    destination.x = i;
+                    destination.y = j;
+                    if(grid.aStar(player, destination,selectedObjId).size()){
+                        grid.enlight(i,j);
                     }
                 }
-                selected = cursorCoord;
             }
-        }
-        else{
-            if(grid.getData()[cursorCoord.first][cursorCoord.second].Surbr){
-                grid.setObject(selectedObjId,cursorCoord.first,cursorCoord.second);
-                grid.clear();
-                selected.first=-1;
-                selected.second=-1;
-                selectedObjId=-1;
-            }
+            selected = cursorCoord;
         }
     }
-    if(e->key()==Qt::Key_Escape){
-        grid.clear();
-        selected.first=-1;
-        selected.second=-1;
-        selectedObjId=-1;
-
+    else{
+        if(grid.getData()[cursorCoord.first][cursorCoord.second].Surbr){
+            grid.setObject(selectedObjId,cursorCoord.first,cursorCoord.second);
+            grid.clear();
+            selected.first=-1;
+            selected.second=-1;
+            selectedObjId=-1;
+        }
     }
-    update();
-}
-
-void MainWidget::keyReleaseEvent(QKeyEvent *e){
-    key_pressed.remove((Qt::Key)e->key());
 }
 
 void MainWidget::wheelEvent(QWheelEvent *event){
@@ -171,12 +126,6 @@ void display(QMatrix4x4 mat){
         cout << endl;
     }
     cout << endl;
-}
-
-
-void MainWidget::mousePressEvent(QMouseEvent *e)
-{
-
 }
 
 void MainWidget::rotation_handler(){
