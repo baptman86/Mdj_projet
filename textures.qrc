@@ -1,9 +1,11 @@
 <RCC>
     <qresource prefix="/">
-        <file>canyon.pgm</file>
         <file>ground.png</file>
         <file>groundSquart.png</file>
         <file>soldierRifleTexture.jpg</file>
         <file>rockLargeTexture.png</file>
+        <file>soldierGrenadeTexture.jpg</file>
+        <file>soldierFlamethrowerTexture.jpg</file>
+        <file>soldierBazookaTexture.jpg</file>
     </qresource>
 </RCC>

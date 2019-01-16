@@ -76,7 +76,7 @@ protected:
     vector<vector<gridData> > data;
 
     GroundType randomGround() {
-        return static_cast<GroundType>(rand() % GroundType::boue);
+        return static_cast<GroundType>(rand() % GroundType::end);
     }
     float* toWeights();
 
