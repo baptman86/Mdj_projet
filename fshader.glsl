@@ -14,9 +14,9 @@ void main()
 {
     // Set fragment color from texture
     gl_FragColor = texture2D(texture, v_texinfo.xy);
-    if(v_texinfo.z){
-        gl_FragColor+=v_color;
-    }
+    //if(v_texinfo.z){
+        gl_FragColor+=(v_color*v_texinfo.z);
+    //}
 }
 //! [0]
 
