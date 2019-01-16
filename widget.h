@@ -17,10 +17,13 @@ struct CharacterInfoWidget{
 class Widget : public QOpenGLWidget, protected QOpenGLFunctions
 {
 public:
-    Widget(int randseed, int fps=60,unsigned int gridSize = 8, float size=0.5f, QWidget *parent = 0);
+    Widget(int fps=60,unsigned int gridSize = 8, float size=0.5f, QWidget *parent = 0);
     bool eventFilter(QObject *object, QEvent *event) override;
     void timerEvent(QTimerEvent *e) override;
     MainWidget* mainWidget;
+
+
+    void endGame();
 
 private:
     QBasicTimer timer;

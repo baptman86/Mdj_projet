@@ -6,7 +6,8 @@ Character::Character(string objFileName, string TextureFileName, int m, int h, i
 
 void Character::damage(int d, bool t){
     if(this->hp-d<=0){
-        //TODO kill
+        this->setCoord(-1,-1);
+        this->hp=0;
     } else {
         this->hp-=d;
     }

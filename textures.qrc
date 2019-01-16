@@ -1,7 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>cube.png</file>
-        <file>NB.png</file>
         <file>canyon.pgm</file>
         <file>ground.png</file>
         <file>groundSquart.png</file>

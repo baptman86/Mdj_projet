@@ -1,8 +1,8 @@
 #include "widget.h"
 
-Widget::Widget(int randseed, int fps,unsigned int gridSize, float size, QWidget *parent)
+Widget::Widget(int fps,unsigned int gridSize, float size, QWidget *parent)
 {
-    mainWidget = new MainWidget(randseed,fps,gridSize,size,this);
+    mainWidget = new MainWidget(fps,gridSize,size,this);
 
     endTurnButton = new QPushButton("End Turn");
 
@@ -19,12 +19,9 @@ Widget::Widget(int randseed, int fps,unsigned int gridSize, float size, QWidget 
 
     this->focusPolicy();
     this->setLayout(assemble);
-
-
-
-
-    timer.start(1000, this);
+    timer.start(500,this);
 }
+
 
 bool Widget::eventFilter(QObject *object, QEvent *event)
 {
@@ -53,7 +50,23 @@ bool Widget::eventFilter(QObject *object, QEvent *event)
         mainWidget->key_pressed << (Qt::Key)e->key();
 
         if(e->key()==Qt::Key_Enter-1){
-            mainWidget->select();
+            const int selectedId = mainWidget->selectedObjId;
+            if(selectedId!=-1){
+                int x = mainWidget->cursorCoord.first;
+                int y = mainWidget->cursorCoord.second;
+
+                int targetId = mainWidget->grid.getData()[x][y].ObjId;
+
+                if(targetId<0){
+                    this->mainWidget->makeCharacterMove(selectedId,make_pair(x,y));
+                } else {
+                    this->mainWidget->makeCharacterShoot(selectedId,make_pair(x,y));
+                }
+                mainWidget->selectedObjId=-1;
+                mainWidget->grid.clear();
+            } else {
+                mainWidget->select();
+            }
         }
         if(e->key()==Qt::Key_Escape){
             mainWidget->grid.clear();
@@ -70,7 +83,7 @@ bool Widget::eventFilter(QObject *object, QEvent *event)
     }
     if(event->type() == QEvent::MouseButtonPress){
         if(object == endTurnButton){
-            cout << "3" << endl;
+            mainWidget->endTurn();
         }
     }
     return false;
@@ -79,6 +92,7 @@ bool Widget::eventFilter(QObject *object, QEvent *event)
 void Widget::timerEvent(QTimerEvent *e)
 {
     displayCharacter();
+    endGame();
     update();
 }
 
@@ -115,5 +129,41 @@ void Widget::displayCharacter(){
 
         characterInfos.push_back(layout);
         ui->addLayout(layout);
+    }
+}
+
+void Widget::endGame(){
+    if(mainWidget->turn>0){
+        bool team0 = true;
+        bool team1 = true;
+        for(int id : mainWidget->grid.charactersId){
+            pair<int,int> coord = mainWidget->grid.objects[id]->getCoord();
+            if(coord.first!=-1 || coord.second!=-1){
+                if(((Character*)mainWidget->grid.objects[id])->getTeam()==0){
+                    team0=false;
+                }
+                else{
+                    team1=false;
+                }
+            }
+        }
+        if(team0){
+            timer.stop();
+            QHBoxLayout *tmp = new QHBoxLayout;
+            tmp->addWidget(new QLabel("Vous avez Perdu !"));
+            QWidget* w = new QWidget();
+            w->setLayout(tmp);
+            w->show();
+            this->hide();
+        }
+        if(team1){
+            timer.stop();
+            QHBoxLayout *tmp = new QHBoxLayout;
+            tmp->addWidget(new QLabel("Vous avez gagné !"));
+            QWidget* w = new QWidget();
+            w->setLayout(tmp);
+            w->show();
+            this->hide();
+        }
     }
 }

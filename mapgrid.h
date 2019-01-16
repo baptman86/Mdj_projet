@@ -7,7 +7,7 @@
 #include <iostream>
 #include <float.h>
 
-enum GroundType { plante, boue, roche, end };
+enum GroundType { plante, roche, boue, end };
 
 struct gridData{
     int ObjId;
@@ -37,9 +37,12 @@ using namespace std;
 class MapGrid
 {
 public:
-    MapGrid(unsigned int size, int randseed);
+    MapGrid(unsigned int size);
     unsigned int getSize();
     vector<vector<gridData> > getData();
+    void clearCase(int x, int y){
+        data[x][y].ObjId=-1;
+    }
 
     bool addCharacter(Object* o);
     bool addCharacter(Object* o, int x, int y);
@@ -49,12 +52,16 @@ public:
 
     bool setObject(int id, int x, int y);
 
-    bool isInLosAndRange( float x1, float y1, float x2, float y2, int r );
+    bool isInLosAndRange( int x1, int y1, int x2, int y2, int r );
     bool isInLosAndRange( pair<int, int> begin, pair<int,int> end, int r );
 
     bool isValid(int x, int y, int id, int targetId);
     vector<Node> aStar(Node player, Node dest, int id, int targetId=-1, bool usemouvement=true);
     vector<Node> makePath(vector<vector<Node> > map, Node dest);
+
+    bool plotLineLow(int x0,int y0,int x1,int y1);
+    bool plotLineHigh(int x0,int y0,int x1,int y1);
+    bool plotLine(int x0,int y0,int x1,int y1);
 
     void unenlight(int x, int y);
     void enlight(int x, int y);
@@ -69,7 +76,7 @@ protected:
     vector<vector<gridData> > data;
 
     GroundType randomGround() {
-        return static_cast<GroundType>(rand() % GroundType::end);
+        return static_cast<GroundType>(rand() % GroundType::boue);
     }
     float* toWeights();
 

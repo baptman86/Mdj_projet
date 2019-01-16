@@ -10,7 +10,7 @@ class AI
 public:
     AI(MapGrid grid);
 
-    pair <string, pair<int,int> > act(MapGrid grid, Character c);
+    pair <string, pair<int,int> > act(MapGrid grid, Character* c);
     void actAll(MapGrid grid);
 
     vector<int> characterIds;
@@ -21,10 +21,10 @@ protected:
 
     string action;
     pair<int,int> targetCoord;
-    void resolve(MapGrid grid, Character c);
-    bool lookForTarget(MapGrid grid, Character c);
+    void resolve(MapGrid grid, Character* c);
+    bool lookForTarget(MapGrid grid, Character* c);
 
-    pair<int,int> goToClosestTarget(MapGrid grid, Character c);
+    pair<int,int> goToClosestTarget(MapGrid grid, Character* c);
 
 };
 

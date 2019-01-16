@@ -14,7 +14,14 @@ void Rifle::shoot(MapGrid grid, int x, int y){
         int objId = grid.getData()[x][y].ObjId;
 
         if(!objId<0){
-            ((Character*)grid.objects[objId])->damage(this->damage,this->terraformer);
+            if(((Character*)grid.objects[objId])->hp-this->getDamage()<=0){
+                ((Character*)grid.objects[objId])->hp=0;
+                grid.clearCase(((Character*)grid.objects[objId])->getCoord().first,((Character*)grid.objects[objId])->getCoord().second);
+                ((Character*)grid.objects[objId])->setCoord(-1,-1);
+            }
+            else{
+                ((Character*)grid.objects[objId])->hp-=this->getDamage();
+            }
         }
     }
 }

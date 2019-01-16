@@ -68,12 +68,17 @@ int main(int argc, char *argv[])
     app.setApplicationVersion("0.1");
 
 #ifndef QT_NO_OPENGL
-    Widget widget(time(NULL),60,12,1.0f);
+    srand(0);
+    Widget widget(60,16,1.0f);
 
-    widget.mainWidget->grid.addCharacter(new Character("soldierRifle.obj","soldierRifleTexture.jpg",5,5,0, new Rifle(3,7,false)),3,3);
-    widget.mainWidget->grid.addCharacter(new Character("soldierRifle.obj","soldierRifleTexture.jpg",5,5,0, new Rifle(3,7,false)),1,3);
-    widget.mainWidget->grid.addCharacter(new Character("soldierRifle.obj","soldierRifleTexture.jpg",5,5,1, new Rifle(3,7,false)),5,7);
-    widget.mainWidget->grid.addObstacle(new Obstacle("rockLarge.obj","rockLargeTexture.png"),6,7);
+    for(int i=-2;i<3;i++){
+        widget.mainWidget->grid.addCharacter(new Character("soldierRifle.obj","soldierRifleTexture.jpg",5,10,0, new Rifle(4,7,false)),8+2*i,2);
+        widget.mainWidget->grid.addCharacter(new Character("soldierRifle.obj","soldierRifleTexture.jpg",5,10,1, new Rifle(4,7,false)),8+2*i,13);
+    }
+
+    for(int i=0;i<15;i++){
+        widget.mainWidget->grid.addObstacle(new Obstacle("rockLarge.obj","rockLargeTexture.png"),rand()%16,rand()%16);
+    }
 
     widget.resize(1024,768);
     widget.show();
@@ -81,7 +86,6 @@ int main(int argc, char *argv[])
     AI *ai = new AI(widget.mainWidget->grid);
         widget.mainWidget->ai = ai;
 
-    widget.mainWidget->startTurn();
 #else
     QLabel note("OpenGL Support required");
     note.show();

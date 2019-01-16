@@ -20,12 +20,12 @@ AI::AI(MapGrid grid){
 //    }
 //}
 
-pair <string, pair<int,int> > AI::act(MapGrid grid, Character c){
+pair <string, pair<int,int> > AI::act(MapGrid grid, Character *c){
 
-    cout << "AI ENGAGED";
+    cout << "AI ENGAGED" << endl;
     //si pas d'arme
-    if(c.getWeapon()==nullptr){
-        cout << "moi " << c.ObjFileName << ",j'ai pas d'arme lol" ;
+    if(c->getWeapon()==nullptr){
+        cout << "moi " << c->ObjFileName << ",j'ai pas d'arme lol" << endl ;
         this->action="derp";
         this->targetCoord=make_pair(0,0);
 
@@ -40,7 +40,7 @@ pair <string, pair<int,int> > AI::act(MapGrid grid, Character c){
     return make_pair(this->action,this->targetCoord);
 }
 
-bool AI::lookForTarget(MapGrid grid, Character c){
+bool AI::lookForTarget(MapGrid grid, Character *c){
 
     Character *target;
     bool targetFound = false;
@@ -49,7 +49,11 @@ bool AI::lookForTarget(MapGrid grid, Character c){
         Object *obj = grid.objects[id];
         Character *chara = static_cast <Character *>(obj);
 
-        if(chara->getTeam()==0 && grid.isInLosAndRange(c.getCoord(),chara->getCoord(),c.getWeapon()->getRange())){
+        if(chara->getCoord().first<0 || chara->getCoord().second<0 ){
+            continue;
+        }
+
+        if(chara->getTeam()==0 && grid.isInLosAndRange(c->getCoord(),chara->getCoord(),c->getWeapon()->getRange())){
             if(maxEnnemyHealth==0 || maxEnnemyHealth > chara->hp>maxEnnemyHealth){
                 target = chara;
                 targetFound = true;
@@ -67,14 +71,17 @@ bool AI::lookForTarget(MapGrid grid, Character c){
 
 }
 
-pair<int,int> AI::goToClosestTarget(MapGrid grid, Character c){
+pair<int,int> AI::goToClosestTarget(MapGrid grid, Character *c){
     Character *target;
     int idSelf;
 
     pair<int,int> result;
 
     for(int j=0;j<grid.objects.size();j++){
-        if(target==grid.objects[j]){
+        string msg = "Le tour de l'equipe " ;
+        msg.append(" commence.");
+        cout << msg  << endl;
+        if(c==grid.objects[j]){
             idSelf=j;
             break;
         }
@@ -86,23 +93,26 @@ pair<int,int> AI::goToClosestTarget(MapGrid grid, Character c){
     int targetX;
     int targetY;
 
+    vector<Node> goodPath;
+
     for(int id : grid.charactersId){
         Object *obj = grid.objects[id];
         Character *chara = static_cast <Character *>(obj);
 
-        vector<Node> goodPath;
+        if(chara->getTeam()==0 && !(chara->getCoord().first<0 || chara->getCoord().second<0)){
 
         Node begin, end;
 
-        begin.x=c.getCoord().first;
-        begin.y=c.getCoord().second;
+        begin.x=c->getCoord().first;
+        begin.y=c->getCoord().second;
 
         end.x=chara->getCoord().first;
         end.y=chara->getCoord().second;
 
-        if(chara->getTeam()==0){
+
             vector<Node> longPath=grid.aStar(begin, end, idSelf, id,false);
-            if(min==-1 || min > chara->hp>longPath.size()){
+            if(min==-1 || min >longPath.size()){
+                min = longPath.size();
                 target = chara;
                 targetFound = true;
                 goodPath=longPath;
@@ -110,49 +120,46 @@ pair<int,int> AI::goToClosestTarget(MapGrid grid, Character c){
                 targetY=end.y;
             }
         }
+    }
 
-        const int maxSize=goodPath.size();
+    const int maxSize=goodPath.size();
 
-        //Si le mouvement permet d'arriver à portée avec la valeur de mouvement
-        if(c.getWeapon()->getRange()+c.getMovement()<goodPath.size()){
+    //Si le mouvement permet d'arriver à portée avec la valeur de mouvement
+    if(c->getWeapon()->getRange()+c->getMovement() < maxSize){
 
-            int distanceToGo=goodPath.size()-c.getWeapon()->getRange();
+        int distanceToGo=goodPath.size()-c->getWeapon()->getRange();
 
-//            for(int ji = 0; ji<distanceToGo; ji++){
-//                result.insert(result.begin(),goodPath[ji]);
-//            }
+        //            for(int ji = 0; ji<distanceToGo; ji++){
+        //                result.insert(result.begin(),goodPath[ji]);
+        //            }
 
-            //S'il y a un problème d'overflow, c'est par ici
-            //Check si la distance minimum suffit à pouvoir tirer
-            while(!grid.isInLosAndRange(goodPath[distanceToGo].x,goodPath[distanceToGo].y,targetX,targetY,c.getWeapon()->getRange())
-                  && distanceToGo<goodPath.size()-1){
+        //S'il y a un problème d'overflow, c'est par ici
+        //Check si la distance minimum suffit à pouvoir tirer
+        while(!grid.isInLosAndRange(goodPath[distanceToGo].x,goodPath[distanceToGo].y,targetX,targetY,c->getWeapon()->getRange())
+              && distanceToGo+1<c->getMovement()-1){
 
-                distanceToGo++;
-                    //result.insert(result.begin(),goodPath[distanceToGo]);
+            distanceToGo++;
+            //result.insert(result.begin(),goodPath[distanceToGo]);
 
-            }
-            result.first = goodPath[distanceToGo].x;
-            result.second = goodPath[distanceToGo].x;
-        } else {
-
-            result.first = goodPath[c.getMovement()-1].x;
-            result.second = goodPath[c.getMovement()-1].y;
         }
+        result.first = goodPath[distanceToGo].x;
+        result.second = goodPath[distanceToGo].y;
+    } else {
 
-        return result;
-
+        result.first = goodPath[c->getMovement()-1].x;
+        result.second = goodPath[c->getMovement()-1].y;
     }
 
-    if(targetFound){
-        this->action="ACTION_SHOOT";
-        this->targetCoord=target->getCoord();
-    }
+    return result;
+
 }
+
+
 
 //string AI::resolve(MapGrid grid, Character c){
 //    if(this->action=="ACTION_SHOOT"){
 //        return (action);
 //    }
 
-//    c.actionDone=true;
+//    c->actionDone=true;
 //}

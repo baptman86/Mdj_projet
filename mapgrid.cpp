@@ -1,7 +1,7 @@
 #include "mapgrid.h"
 #include "character.h"
 
-MapGrid::MapGrid(unsigned int size,int randseed)
+MapGrid::MapGrid(unsigned int size)
 {
     this->size=size;
     for(int i=0;i<size;i++){
@@ -107,65 +107,16 @@ bool MapGrid::isInLosAndRange( pair<int, int> begin, pair<int,int> end, int r ){
     return this->isInLosAndRange(begin.first, begin.second, end.first, end.second, r);
 }
 
-bool MapGrid:: isInLosAndRange( float x1, float y1, float x2, float y2, int r )
+bool MapGrid::isInLosAndRange( int x1, int y1, int x2, int y2, int r )
 {
     //check range avec la distance de Manhattan
     if(fabs(x1-x2)+fabs(y1-y2) >=r){
         return false;
     }
 
-        // Bresenham's line algorithm
-  const bool steep = (fabs(y2 - y1) > fabs(x2 - x1));
-  if(steep)
-  {
-    std::swap(x1, y1);
-    std::swap(x2, y2);
-  }
+    return this->plotLine(x1,y1,x2,y2);
 
-  if(x1 > x2)
-  {
-    std::swap(x1, x2);
-    std::swap(y1, y2);
-  }
-
-  const float dx = x2 - x1;
-  const float dy = fabs(y2 - y1);
-
-  float error = dx / 2.0f;
-  const int ystep = (y1 < y2) ? 1 : -1;
-  int y = (int)y1;
-
-  const int maxX = (int)x2;
-
-  for(int x=(int)x1; x<maxX; x++)
-  {
-    if(steep)
-    {
-        if(this->data[y][x].ObjId!=0){
-            return false;
-        }
-        //SetPixel(y,x, color);
-    }
-    else
-    {
-        if(this->data[x][y].ObjId!=0){
-            return false;
-        }
-        //SetPixel(x,y, color);
-    }
-
-    error -= dy;
-    if(error < 0)
-    {
-        y += ystep;
-        error += dx;
-    }
-  }
-
-
-  return true;
 }
-
 
 
 bool isDestination(int x, int y, Node dest) {
@@ -350,4 +301,90 @@ vector<Node> MapGrid::makePath(vector<vector<Node> > map, Node dest) {
     catch(const exception& e){
         cout << e.what() << endl;
     }
+}
+
+bool MapGrid::plotLineLow(int x0,int y0,int x1,int y1){
+    cout << "On entre dans low";
+  int dx = x1 - x0;
+  int dy = y1 - y0;
+  int yi = 1;
+  if (dy < 0){
+    yi = -1;
+    dy = -dy;
+  }
+  int D = 2*dy - dx;
+  int y = y0;
+
+  for(int x = x0; x < x1 ; x++){
+      this->enlight(x,y);
+    if(this->data[x][y].ObjId>=0 && (!(x0==x && y0 ==y))&& (!(x1==x && y1==y))){
+        return false;
+
+    }
+    if (D > 0){
+       y = y + yi;
+       D = D - 2*dx;
+    }
+
+   D = D + 2*dy;
+
+  }
+  return true;
+}
+
+bool MapGrid::plotLineHigh(int x0,int y0,int x1,int y1){
+
+  int dx = x1 - x0;
+
+
+  int dy = y1 - y0;
+
+
+
+  int xi = 1;
+  if (dx < 0){
+    xi = -1;
+    dx = -dx;
+  }
+  int D = 2*dx - dy;
+
+  int x = x0;
+
+
+  for(int y = y0; y < y1 ; y++){
+
+
+//      this->enlight(x,y);
+    if(this->data[x][y].ObjId>=0 && (!(x0==x && y0 ==y)) && (!(x1==x && y1==y))){
+        return false;
+
+    }
+
+    if (D > 0){
+       x = x + xi;
+       D = D - 2*dy;
+    }
+    D = D + 2*dx;
+
+  }
+  return true;
+}
+
+bool MapGrid::plotLine(int x0,int y0,int x1,int y1){
+    if (abs(y1 - y0) < abs(x1 - x0)){
+        if (x0 > x1) {
+          return plotLineLow(x1, y1, x0, y0);
+        }
+        else {
+          return plotLineLow(x0, y0, x1, y1);
+        }
+    }
+      else {
+        if (y0 > y1) {
+          return plotLineHigh(x1, y1, x0, y0);
+        }
+        else {
+          return plotLineHigh(x0, y0, x1, y1);
+        }
+     }
 }

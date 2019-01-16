@@ -89,7 +89,7 @@ class MainWidget : public QOpenGLWidget, protected QOpenGLFunctions
     Q_OBJECT
 
 public:
-    explicit MainWidget(int randseed, int fps=60,unsigned int gridSize = 8, float size=0.5f, QWidget *parent = 0);
+    explicit MainWidget(int fps=60,unsigned int gridSize = 8, float size=0.5f, QWidget *parent = 0);
     ~MainWidget();
 
     void addObject(string objFileName);

@@ -52,18 +52,17 @@
 
 using namespace std;
 
-MainWidget::MainWidget(int randseed, int fps,unsigned int gridSize, float size, QWidget *parent) :
+MainWidget::MainWidget(int fps,unsigned int gridSize, float size, QWidget *parent) :
     QOpenGLWidget(parent),
     fps(fps),
-    grid(MapGrid(gridSize,randseed)),
+    grid(MapGrid(gridSize)),
     size(size),
     cursorCoord(make_pair(gridSize/2,gridSize/2)),
     selected(make_pair(-1,-1)),
     selectedObjId(-1),
-    turn(1),
-    teamTurn(1)
+    turn(0),
+    teamTurn(0)
 {
-    srand (randseed);
     projectionTransform.setToIdentity();
 }
 
@@ -401,31 +400,40 @@ void MainWidget::paintGL()
 
 
     for(int id : grid.charactersId){
-
-        matrix.setToIdentity();
-        matrix.translate(0,0,-1);
-        matrix.rotate(rotation);
-
-
-        matrix.translate((size/(gridSize-1)*grid.objects[id]->getCoord().first+size/(gridSize-1)*(grid.objects[id]->getCoord().first+1))/2-size/2,(size/(gridSize-1)*grid.objects[id]->getCoord().second+size/(gridSize-1)*(grid.objects[id]->getCoord().second+1))/2-size/2,0);
+        if(grid.objects[id]->getCoord().first>=0 && grid.objects[id]->getCoord().second>=0){
+            matrix.setToIdentity();
+            matrix.translate(0,0,-1);
+            matrix.rotate(rotation);
 
 
-        if(((Character*) grid.objects[id])->getTeam()==0){
-            programMesh.setUniformValue("color", QVector4D(1,0,0,1));
-            matrix.translate(0.0f,0.15f/gridSize*size,0.0f);
-            matrix.rotate(QQuaternion::fromAxisAndAngle(QVector3D(0,0,1),-180));
+            matrix.translate((size/(gridSize-1)*grid.objects[id]->getCoord().first+size/(gridSize-1)*(grid.objects[id]->getCoord().first+1))/2-size/2,(size/(gridSize-1)*grid.objects[id]->getCoord().second+size/(gridSize-1)*(grid.objects[id]->getCoord().second+1))/2-size/2,0);
+
+
+            if(((Character*) grid.objects[id])->getTeam()==0){
+                QVector4D color = QVector4D(1,0,0,1);
+                if(((Character*) grid.objects[id])->actionDone){
+                    color*=QVector4D(0.5,0.5,0.5,0.5)/3;
+                }
+                programMesh.setUniformValue("color", color);
+                matrix.translate(0.0f,0.15f/gridSize*size,0.0f);
+                matrix.rotate(QQuaternion::fromAxisAndAngle(QVector3D(0,0,1),-180));
+            }
+            else{
+                QVector4D color = QVector4D(0,0,1,1);
+                if(((Character*) grid.objects[id])->actionDone){
+                    color*=QVector4D(0.5,0.5,0.5,0.5)/3;
+                }
+                matrix.translate(0.0f,-0.15f/gridSize*size,0.0f);
+                programMesh.setUniformValue("color", color);
+            }
+
+            matrix.scale(scaling);
+            grid.objects[id]->mesh.texture->bind();
+            // Set modelview-projection matrix
+            programMesh.setUniformValue("m_matrix", matrix);
+
+            grid.objects[id]->mesh.draw(&programMesh);
         }
-        else{
-            matrix.translate(0.0f,-0.15f/gridSize*size,0.0f);
-            programMesh.setUniformValue("color", QVector4D(0,0,1,1));
-        }
-
-        matrix.scale(scaling);
-        grid.objects[id]->mesh.texture->bind();
-        // Set modelview-projection matrix
-        programMesh.setUniformValue("m_matrix", matrix);
-
-        grid.objects[id]->mesh.draw(&programMesh);
     }
 
     programMesh.setUniformValue("color", QVector4D(0,0,0,1));
@@ -456,8 +464,10 @@ bool MainWidget::areAllActionsDone(){
     for(int id : this->grid.charactersId){
         Object *obj=this->grid.objects[id];
         Character *chara = static_cast <Character *>(obj);
-        if(this->teamTurn==chara->getTeam()&&chara->actionDone==false){
-            inter=false;
+        if(chara->getCoord().first!=-1 && chara->getCoord().second!=-1){
+            if(this->teamTurn==chara->getTeam()&&chara->actionDone==false){
+                inter=false;
+            }
         }
     }
 
@@ -481,10 +491,12 @@ void MainWidget::makeCharacterShoot(int i, pair<int,int> target){
         Character *chara2 = static_cast <Character *>(obj2);
 
         bool doneSomething = false;
-        cout << chara->getCoord().first << " : " << chara->getCoord().second << endl;
         if(this->grid.isInLosAndRange(chara->getCoord(),target,chara->getWeapon()->getRange())){
 
             chara2->damage(chara->getWeapon()->getDamage(),chara->getWeapon()->isTerraformer());
+            if(chara2->hp<=0){
+                grid.clearCase(target.first,target.second);
+            }
             cout << "tir reussi" ;
 
             doneSomething = true;
@@ -542,16 +554,21 @@ void MainWidget::startTurn(){
     cout << msg  << endl;
     if(this->teamTurn!=0){
         for(int id : this->ai->characterIds){
+
             Object *obj = grid.objects[id];
             Character *chara = static_cast <Character *>(obj);
+            if(chara->getCoord().first == -1 || chara->getCoord().second == -1){
+                chara->actionDone=true;
+                continue;
+            }
             this->ai->currentCharacter=id;
 
-            pair <string, pair<int,int> > aiAnswer =make_pair("ACTION_SHOOT",make_pair(3,3));// this->ai->act(grid,*chara);
+            pair <string, pair<int,int> > aiAnswer = ai->act(grid,chara);
             if(aiAnswer.first=="ACTION_SHOOT"){
                 this->makeCharacterShoot(id,aiAnswer.second);
             } else {
-//                chara->actionDone=true;
-//                this->areAllActionsDone();
+    //                chara->actionDone=true;
+    //                this->areAllActionsDone();
                 this->makeCharacterMove(id,aiAnswer.second);
             }
         }
@@ -571,5 +588,10 @@ void MainWidget::endTurn(){
     } else {
         this->teamTurn=0;
     }
-    this->startTurn();
+    for(int id : this->ai->characterIds){
+        if(grid.objects[id]->getCoord().first!=-1 && grid.objects[id]->getCoord().second!=-1){
+            this->startTurn();
+            break;
+        }
+    }
 }
