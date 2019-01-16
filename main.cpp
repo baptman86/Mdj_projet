@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
     app.setApplicationVersion("0.1");
 
 #ifndef QT_NO_OPENGL
-    srand(0);
+    srand(1);
     Widget widget(60,16,1.0f);
 
     for(int i=-2;i<3;i++){

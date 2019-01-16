@@ -142,15 +142,30 @@ pair<int,int> AI::goToClosestTarget(MapGrid grid, Character *c){
             //result.insert(result.begin(),goodPath[distanceToGo]);
 
         }
-        result.first = goodPath[distanceToGo].x;
-        result.second = goodPath[distanceToGo].y;
-    } else {
+        for(int ij = 0 ; ij < distanceToGo ; ij++){
+                    if(goodPath[ij].gCost>c->getMovement()){
+                            distanceToGo=ij-1;
+                            break;
+                    }
+                }
+                result.first = goodPath[distanceToGo].x;
+                result.second = goodPath[distanceToGo].y;
+            } else {
 
-        result.first = goodPath[c->getMovement()-1].x;
-        result.second = goodPath[c->getMovement()-1].y;
-    }
+                int m=c->getMovement()-1;
+                for(int ij = 0 ; ij < m ; ij++){
+                    if(goodPath[ij].gCost>m){
+                            m=ij-1;
+                            break;
+                    }
+                }
+                result.first = goodPath[m].x;
+                result.second = goodPath[m].y;
+            }
 
-    return result;
+
+
+            return result;
 
 }
 

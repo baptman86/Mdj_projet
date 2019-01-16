@@ -546,6 +546,16 @@ void MainWidget::makeCharacterMove(int i, pair<int,int> target){
     }
 }
 
+int teamCharacterNumber(MapGrid g ,int team){
+    int s=0;
+    for(int id : g.charactersId){
+        if(((Character*)g.objects[id])->getTeam()==team && ((Character*)g.objects[id])->getCoord().first!=-1 && ((Character*)g.objects[id])->getCoord().first!=-1){
+            s++;
+        }
+    }
+    return s;
+}
+
 void MainWidget::startTurn(){
     //si l'équipe est gérée par une IA, fait agir
     string msg = "Le tour de l'equipe " ;
@@ -557,7 +567,7 @@ void MainWidget::startTurn(){
 
             Object *obj = grid.objects[id];
             Character *chara = static_cast <Character *>(obj);
-            if(chara->getCoord().first == -1 || chara->getCoord().second == -1){
+            if(chara->getCoord().first == -1 || chara->getCoord().second == -1 || teamCharacterNumber(grid,0)<=0){
                 chara->actionDone=true;
                 continue;
             }
@@ -571,6 +581,7 @@ void MainWidget::startTurn(){
     //                this->areAllActionsDone();
                 this->makeCharacterMove(id,aiAnswer.second);
             }
+
         }
     }
 }
@@ -594,4 +605,9 @@ void MainWidget::endTurn(){
             break;
         }
     }
+
+    grid.clear();
+    selected.first=-1;
+    selected.second=-1;
+    selectedObjId=-1;
 }
